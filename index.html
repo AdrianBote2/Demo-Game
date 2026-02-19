@@ -1,66 +1,39 @@
-const ball = document.getElementById('ball');
-const startBtn = document.getElementById('start-button');
-const ui = document.getElementById('ui');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kinematics Lab: Friction</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
 
-// Physics variables
-let posX = 0; // Relative to center
-let velocityX = 0;
-let calibration = 0; // Stores the "zero" tilt angle
-const friction = 0.97; // Air resistance / friction
-const sensitivity = 0.08; // How fast it accelerates
+    <div id="dashboard">
+        <div class="stat">Velocity: <span id="speed-val">0</span> m/s</div>
+        <div class="stat">Tilt Angle: <span id="angle-val">0</span>°</div>
+        <div class="stat" style="color: #ffcc00;">Slip Angle: <span id="slip-val">0</span>°</div>
+        
+        <div class="control">
+            <label>Coefficient of Friction (μ): <span id="mu-val">0.10</span></label>
+            <input type="range" id="friction-slider" min="0" max="0.8" step="0.01" value="0.10">
+            <div class="presets">
+                <button class="preset-btn" data-mu="0.05">Ice</button>
+                <button class="preset-btn" data-mu="0.30">Wood</button>
+                <button class="preset-btn" data-mu="0.60">Rubber</button>
+            </div>
+        </div>
+    </div>
 
-function update() {
-    // Apply velocity to position
-    posX += velocityX;
-    
-    // Apply friction to velocity (gradual slow down)
-    velocityX *= friction;
+    <div id="game-container">
+        <div id="ui">
+            <button id="start-button">INITIALIZE LAB</button>
+        </div>
+        <div id="line"></div>
+        <div id="ball">
+            <div id="vector-arrow"></div>
+        </div>
+    </div>
 
-    // Boundary checks (Screen edges)
-    const halfWidth = window.innerWidth / 2 - 25;
-    if (Math.abs(posX) > halfWidth) {
-        posX = posX > 0 ? halfWidth : -halfWidth;
-        velocityX *= -0.4; // Bounce effect
-    }
-
-    // Move the ball visually
-    ball.style.transform = `translateX(${posX}px)`;
-
-    requestAnimationFrame(update);
-}
-
-function handleOrientation(event) {
-    // gamma is the left-to-right tilt (-90 to 90)
-    let currentTilt = event.gamma; 
-
-    // Adjust tilt based on how the phone was held at start
-    let tilt = currentTilt - calibration;
-
-    // Kinematics: Add tilt to acceleration
-    velocityX += tilt * sensitivity;
-}
-
-startBtn.addEventListener('click', () => {
-    // 1. Request Permission (Required for iOS)
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-            .then(state => {
-                if (state === 'granted') startMoving();
-            })
-            .catch(console.error);
-    } else {
-        startMoving();
-    }
-});
-
-function startMoving() {
-    // 2. Calibrate (Set current angle as 0)
-    window.addEventListener('deviceorientation', (e) => {
-        if (calibration === 0) calibration = e.gamma;
-        handleOrientation(e);
-    }, true);
-
-    // 3. Start Game
-    ui.style.display = 'none';
-    update();
-}
+    <script src="index.js"></script>
+</body>
+</html>
