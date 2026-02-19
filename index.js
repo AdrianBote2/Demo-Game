@@ -3,60 +3,64 @@ const startBtn = document.getElementById('start-button');
 const ui = document.getElementById('ui');
 
 // Physics variables
-let posX = window.innerWidth / 2;
+let posX = 0; // Relative to center
 let velocityX = 0;
-const friction = 0.98; // Slows the ball down slightly
-const speedMultiplier = 0.05; 
+let calibration = 0; // Stores the "zero" tilt angle
+const friction = 0.97; // Air resistance / friction
+const sensitivity = 0.08; // How fast it accelerates
 
 function update() {
     // Apply velocity to position
     posX += velocityX;
-
-    // Apply friction
+    
+    // Apply friction to velocity (gradual slow down)
     velocityX *= friction;
 
-    // Boundary checks (Bounce off walls)
-    if (posX < 0) {
-        posX = 0;
-        velocityX *= -0.5; // Bounce effect
-    }
-    if (posX > window.innerWidth - 50) {
-        posX = window.innerWidth - 50;
-        velocityX *= -0.5; // Bounce effect
+    // Boundary checks (Screen edges)
+    const halfWidth = window.innerWidth / 2 - 25;
+    if (Math.abs(posX) > halfWidth) {
+        posX = posX > 0 ? halfWidth : -halfWidth;
+        velocityX *= -0.4; // Bounce effect
     }
 
-    // Update the visual position
-    ball.style.transform = `translateX(${posX}px) translateY(${window.innerHeight / 2}px)`;
+    // Move the ball visually
+    ball.style.transform = `translateX(${posX}px)`;
 
     requestAnimationFrame(update);
 }
 
 function handleOrientation(event) {
-    // gamma is the left-to-right tilt in degrees [-90, 90]
-    let tilt = event.gamma; 
+    // gamma is the left-to-right tilt (-90 to 90)
+    let currentTilt = event.gamma; 
 
-    // Kinematics: Acceleration based on tilt
-    velocityX += tilt * speedMultiplier;
+    // Adjust tilt based on how the phone was held at start
+    let tilt = currentTilt - calibration;
+
+    // Kinematics: Add tilt to acceleration
+    velocityX += tilt * sensitivity;
 }
 
 startBtn.addEventListener('click', () => {
-    // Request permission for iOS 13+
+    // 1. Request Permission (Required for iOS)
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
             .then(state => {
-                if (state === 'granted') {
-                    initGame();
-                }
+                if (state === 'granted') startMoving();
             })
-            .catch(e => console.error(e));
+            .catch(console.error);
     } else {
-        // Android or older iOS
-        initGame();
+        startMoving();
     }
 });
 
-function initGame() {
+function startMoving() {
+    // 2. Calibrate (Set current angle as 0)
+    window.addEventListener('deviceorientation', (e) => {
+        if (calibration === 0) calibration = e.gamma;
+        handleOrientation(e);
+    }, true);
+
+    // 3. Start Game
     ui.style.display = 'none';
-    window.addEventListener('deviceorientation', handleOrientation);
-    update(); // Start the physics loop
+    update();
 }
