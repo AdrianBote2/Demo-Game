@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>360° Tilt Kinematics</title>
+    <title>360° Kinematics Lab</title>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div id="hud" class="hidden">
         <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
         <div class="stat">Acceleration: <span id="a-total">0.00</span> m/s²</div>
+        <div class="stat">Tilt X: <span id="tilt-x">0.00</span>°</div>
+        <div class="stat">Tilt Y: <span id="tilt-y">0.00</span>°</div>
+        <div class="stat">Friction (μ): <span id="friction-val">0.97</span></div>
+        <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
     </div>
 
     <div id="game-container">
         <div id="ui">
             <h1>360° Kinematics</h1>
-            <p>Tilt your phone in any direction to roll the ball</p>
-            <button id="start-button">START</button>
+            <p>Hold phone naturally and press Start to calibrate</p>
+            <button id="start-button">START SESSION</button>
         </div>
 
         <div id="ball"></div>

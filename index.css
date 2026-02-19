@@ -1,36 +1,46 @@
 html, body {
     margin: 0; padding: 0; width: 100%; height: 100vh;
-    overflow: hidden; touch-action: none; background-color: #1a1a1a;
-    font-family: sans-serif; display: flex; justify-content: center; align-items: center;
+    overflow: hidden; touch-action: none; background-color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
-
-#hud {
-    position: absolute; top: 20px; left: 20px; color: #ff4d4d;
-    font-family: monospace; font-size: 1.2rem; z-index: 20;
-}
-
-.hidden { display: none; }
 
 #game-container {
     position: relative; width: 100vw; height: 100vh;
+    display: flex; justify-content: center; align-items: center;
 }
+
+/* The HUD: Glassmorphism Style */
+#hud {
+    position: absolute; top: 20px; left: 20px; z-index: 100;
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px; border-radius: 12px;
+    color: #22d3ee; font-family: 'Courier New', Courier, monospace;
+    pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.stat { font-size: 0.9rem; margin-bottom: 5px; }
+.stat span { color: #f8fafc; font-weight: bold; }
+.hidden { display: none; }
 
 #ball {
     width: 50px; height: 50px;
-    background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000);
+    background: radial-gradient(circle at 30% 30%, #ef4444, #7f1d1d);
     border-radius: 50%; position: absolute;
-    top: 50%; left: 50%; margin-left: -25px; margin-top: -25px;
-    z-index: 5; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    top: 50%; left: 50%; margin: -25px 0 0 -25px;
+    z-index: 5; box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
 #ui {
-    position: absolute; top: 40%; left: 50%;
-    transform: translate(-50%, -50%); text-align: center;
-    color: white; z-index: 10; width: 80%;
+    text-align: center; color: white; z-index: 10;
+    padding: 20px; background: rgba(15, 23, 42, 0.9); border-radius: 20px;
 }
 
 button {
-    background: #ff4d4d; color: white; border: none;
+    background: #22d3ee; color: #0f172a; border: none;
     padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
-    border-radius: 50px; cursor: pointer; box-shadow: 0 4px 0 #800000;
+    border-radius: 50px; cursor: pointer; margin-top: 15px;
 }
+
+button:active { transform: scale(0.98); }

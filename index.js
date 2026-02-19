@@ -2,46 +2,76 @@ const ball = document.getElementById('ball');
 const startBtn = document.getElementById('start-button');
 const ui = document.getElementById('ui');
 const hud = document.getElementById('hud');
-const vDisplay = document.getElementById('v-total');
-const aDisplay = document.getElementById('a-total');
 
-// Physics state
-let x = 0; let y = 0;           
+// HUD Display Elements
+const vDisp = document.getElementById('v-total');
+const aDisp = document.getElementById('a-total');
+const txDisp = document.getElementById('tilt-x');
+const tyDisp = document.getElementById('tilt-y');
+const nfDisp = document.getElementById('normal-force');
+
+// Physics Constants
+const g = 9.81;       // Earth gravity
+const mass = 0.5;    // kg
+const friction = 0.97;
+const sensitivity = 0.06;
+
+// Physics State
+let px = 0; let py = 0;
 let vx = 0; let vy = 0;
 let ax = 0; let ay = 0;
+let tiltX = 0; let tiltY = 0;
 
-// Calibration offsets
+// Sensor Calibration
 let calibBeta = null;
 let calibGamma = null;
 
-const friction = 0.97;
-const sensitivity = 0.05;
-
 function update() {
-    // Apply friction
+    // Apply Friction
     vx *= friction;
     vy *= friction;
-    
-    // Apply velocity to position
-    x += vx;
-    y += vy;
 
+    // Integrate Velocity to Position
+    px += vx;
+    py += vy;
+
+    // Boundaries
     const limitX = window.innerWidth / 2 - 25;
     const limitY = window.innerHeight / 2 - 25;
 
-    // Boundaries
-    if (Math.abs(x) > limitX) { x = Math.sign(x) * limitX; vx *= -0.5; }
-    if (Math.abs(y) > limitY) { y = Math.sign(y) * limitY; vy *= -0.5; }
+    // Logic: If ball hits wall, acceleration and velocity for that axis becomes zero (Normal Force equilibrium)
+    let displayAx = ax;
+    let displayAy = ay;
 
-    // Update Ball Visuals
-    ball.style.transform = `translate(${x}px, ${y}px)`;
+    if (Math.abs(px) >= limitX) {
+        px = Math.sign(px) * limitX;
+        vx = 0;
+        displayAx = 0;
+    }
+    if (Math.abs(py) >= limitY) {
+        py = Math.sign(py) * limitY;
+        vy = 0;
+        displayAy = 0;
+    }
 
-    // Calculate Totals for HUD (Resultant Vectors)
-    let totalV = Math.sqrt(vx*vx + vy*vy);
-    let totalA = Math.sqrt(ax*ax + ay*ay);
+    // Normal Force: Fn = m * g * cos(theta)
+    const tiltMagnitude = Math.sqrt(tiltX**2 + tiltY**2);
+    const tiltRad = tiltMagnitude * (Math.PI / 180);
+    const normalForce = mass * g * Math.cos(tiltRad);
 
-    vDisplay.innerText = totalV.toFixed(2);
-    aDisplay.innerText = totalA.toFixed(2);
+    // Apply Visuals
+    ball.style.transform = `translate(${px}px, ${py}px)`;
+
+    // Calculate Resultants for HUD
+    const totalV = Math.sqrt(vx*vx + vy*vy);
+    const totalA = Math.sqrt(displayAx*displayAx + displayAy*displayAy);
+
+    // Update HUD
+    vDisp.innerText = totalV.toFixed(2);
+    aDisp.innerText = totalA.toFixed(2);
+    txDisp.innerText = tiltX.toFixed(2);
+    tyDisp.innerText = tiltY.toFixed(2);
+    nfDisp.innerText = normalForce.toFixed(2);
 
     requestAnimationFrame(update);
 }
@@ -53,29 +83,32 @@ function handleOrientation(event) {
         return;
     }
 
-    // Capture acceleration based on tilt
-    ax = (event.gamma - calibGamma) * sensitivity;
-    ay = (event.beta - calibBeta) * sensitivity;
+    // Dynamic Tilt (Current - Calibrated Zero)
+    tiltX = event.gamma - calibGamma;
+    tiltY = event.beta - calibBeta;
 
-    // Apply to velocity
+    // Acceleration = change in tilt * sensitivity
+    ax = tiltX * sensitivity;
+    ay = tiltY * sensitivity;
+
     vx += ax;
     vy += ay;
 }
 
 startBtn.addEventListener('click', () => {
+    // iOS 13+ Permission Request
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
             .then(state => {
-                if (state === 'granted') {
-                    initGame();
-                }
+                if (state === 'granted') init();
             })
+            .catch(console.error);
     } else {
-        initGame();
+        init();
     }
 });
 
-function initGame() {
+function init() {
     ui.style.display = 'none';
     hud.classList.remove('hidden');
     window.addEventListener('deviceorientation', handleOrientation);
