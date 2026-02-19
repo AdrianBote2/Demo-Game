@@ -3,35 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kinematics Lab: Friction</title>
+    <title>Tilt Kinematics Game</title>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
-    <div id="dashboard">
-        <div class="stat">Velocity: <span id="speed-val">0</span> m/s</div>
-        <div class="stat">Tilt Angle: <span id="angle-val">0</span>°</div>
-        <div class="stat" style="color: #ffcc00;">Slip Angle: <span id="slip-val">0</span>°</div>
-        
-        <div class="control">
-            <label>Coefficient of Friction (μ): <span id="mu-val">0.10</span></label>
-            <input type="range" id="friction-slider" min="0" max="0.8" step="0.01" value="0.10">
-            <div class="presets">
-                <button class="preset-btn" data-mu="0.05">Ice</button>
-                <button class="preset-btn" data-mu="0.30">Wood</button>
-                <button class="preset-btn" data-mu="0.60">Rubber</button>
-            </div>
-        </div>
-    </div>
-
     <div id="game-container">
         <div id="ui">
-            <button id="start-button">INITIALIZE LAB</button>
+            <h1>Kinematics Game</h1>
+            <p>Hold your phone naturally and tap Start</p>
+            <button id="start-button">START & CALIBRATE</button>
         </div>
-        <div id="line"></div>
-        <div id="ball">
-            <div id="vector-arrow"></div>
-        </div>
+
+        <div id="ball"></div>
     </div>
 
     <script src="index.js"></script>
