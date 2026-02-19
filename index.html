@@ -2,26 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Pages App</title>
-    
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kinematics Tilt Game</title>
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Adding basic backup styles in case index.css isn't loaded */
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: sans-serif; }
+        #game-container { width: 100vw; height: 100vh; position: relative; }
+        #ball { 
+            width: 50px; height: 50px; background: #00ffcc; 
+            border-radius: 50%; position: absolute; 
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        #ui {
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); text-align: center;
+            color: white; z-index: 10;
+        }
+        button {
+            padding: 15px 30px; font-size: 1.2rem; border-radius: 50px;
+            border: none; background: #00ffcc; cursor: pointer; font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1>Welcome to My Application</h1>
-    </header>
+    <div id="game-container">
+        <div id="ui">
+            <h1>Tilt to Move</h1>
+            <p>Use your phone's sensors to play</p>
+            <button id="start-button">START GAME</button>
+        </div>
+        <div id="ball"></div>
+    </div>
 
-    <main>
-        <p>This is a simple boilerplate hosted on GitHub Pages.</p>
-        <button id="clickMe">Click Me!</button>
-    </main>
-
-    <footer>
-        <p>&copy; 2026 My Name</p>
-    </footer>
-
-    <script src="script.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>
