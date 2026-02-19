@@ -1,7 +1,9 @@
 html, body {
-    margin: 0; padding: 0; width: 100%; height: 100vh;
-    overflow: hidden; touch-action: none; background-color: #0f172a;
-    font-family: sans-serif;
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; touch-action: none; 
+    background-color: #0f172a;
+    font-family: -apple-system, sans-serif;
+    position: fixed; /* Prevents the bounce-scroll on iOS */
 }
 
 #game-container {
@@ -11,39 +13,34 @@ html, body {
 
 #hud {
     position: absolute; top: 20px; left: 20px; z-index: 100;
-    background: rgba(30, 41, 59, 0.85); padding: 15px; border-radius: 12px;
-    color: #22d3ee; font-family: monospace; pointer-events: none;
-    border: 1px solid rgba(34, 211, 238, 0.3);
+    background: rgba(30, 41, 59, 0.9); padding: 15px; border-radius: 12px;
+    color: #22d3ee; font-family: monospace; border: 1px solid rgba(34, 211, 238, 0.3);
 }
 
-.stat { font-size: 0.9rem; margin-bottom: 4px; }
+.stat { font-size: 0.85rem; margin-bottom: 4px; }
 .stat span { color: #ffffff; }
 .hidden { display: none; }
 
 #ui {
     text-align: center; color: white; z-index: 10;
-    padding: 30px; background: #1e293b; border-radius: 20px;
-    width: 80%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 25px; background: #1e293b; border-radius: 20px;
+    width: 85%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
-.setup-form {
-    text-align: left; margin: 20px 0;
-}
+.setup-form { text-align: left; margin: 15px 0; }
+.setup-form label { display: block; margin-bottom: 12px; font-size: 0.85rem; color: #94a3b8; }
 
-.setup-form label {
-    display: block; margin-bottom: 15px; font-size: 0.9rem; color: #94a3b8;
-}
-
-.setup-form input, .setup-form select {
-    width: 100%; padding: 10px; margin-top: 5px;
+select {
+    width: 100%; padding: 12px; margin-top: 5px;
     background: #0f172a; border: 1px solid #334155;
     color: white; border-radius: 8px; font-size: 1rem;
+    appearance: none; /* Cleaner look on mobile */
 }
 
 button {
     width: 100%; background: #22d3ee; color: #0f172a; border: none;
-    padding: 15px; font-size: 1.2rem; font-weight: bold;
-    border-radius: 10px; cursor: pointer;
+    padding: 16px; font-size: 1.1rem; font-weight: bold;
+    border-radius: 12px; cursor: pointer;
 }
 
 #ball {
@@ -51,4 +48,5 @@ button {
     background: radial-gradient(circle at 30% 30%, #ef4444, #7f1d1d);
     position: absolute; top: 50%; left: 50%;
     margin: -25px 0 0 -25px; z-index: 5;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }

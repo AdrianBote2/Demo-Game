@@ -23,13 +23,18 @@
             
             <div class="setup-form">
                 <label>Mass (kg): 
-                    <input type="number" id="mass-input" value="0.5" step="0.1" min="0.1">
+                    <select id="mass-input">
+                        <option value="0.1">0.1 kg (Light)</option>
+                        <option value="0.5" selected>0.5 kg (Standard)</option>
+                        <option value="1.0">1.0 kg (Heavy)</option>
+                        <option value="5.0">5.0 kg (Very Heavy)</option>
+                    </select>
                 </label>
                 
                 <label>Surface Type: 
                     <select id="surface-input">
                         <option value="0.05">Ice (Low Friction)</option>
-                        <option value="0.30">Wood (Medium Friction)</option>
+                        <option value="0.30" selected>Wood (Medium Friction)</option>
                         <option value="0.60">Rubber (High Friction)</option>
                         <option value="0.00">No Friction (Vacuum)</option>
                     </select>
@@ -37,7 +42,7 @@
 
                 <label>Gravity (Planet): 
                     <select id="gravity-input">
-                        <option value="9.81">Earth (9.81 m/s²)</option>
+                        <option value="9.81" selected>Earth (9.81 m/s²)</option>
                         <option value="1.62">Moon (1.62 m/s²)</option>
                         <option value="3.71">Mars (3.71 m/s²)</option>
                         <option value="24.79">Jupiter (24.79 m/s²)</option>
