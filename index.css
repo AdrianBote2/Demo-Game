@@ -4,25 +4,23 @@ html, body {
     font-family: sans-serif; display: flex; justify-content: center; align-items: center;
 }
 
+#hud {
+    position: absolute; top: 20px; left: 20px; color: #ff4d4d;
+    font-family: monospace; font-size: 1.2rem; z-index: 20;
+}
+
+.hidden { display: none; }
+
 #game-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
+    position: relative; width: 100vw; height: 100vh;
 }
 
 #ball {
-    width: 50px;
-    height: 50px;
+    width: 50px; height: 50px;
     background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000);
-    border-radius: 50%;
-    position: absolute;
-    /* Initial center position */
-    top: 50%;
-    left: 50%;
-    margin-left: -25px;
-    margin-top: -25px;
-    z-index: 5;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    border-radius: 50%; position: absolute;
+    top: 50%; left: 50%; margin-left: -25px; margin-top: -25px;
+    z-index: 5; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
 #ui {
