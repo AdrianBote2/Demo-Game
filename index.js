@@ -3,17 +3,18 @@ const startBtn = document.getElementById('start-button');
 const ui = document.getElementById('ui');
 const hud = document.getElementById('hud');
 
-// HUD Display Elements
+// HUD & Inputs
 const vDisp = document.getElementById('v-total');
 const aDisp = document.getElementById('a-total');
 const txDisp = document.getElementById('tilt-x');
 const tyDisp = document.getElementById('tilt-y');
 const nfDisp = document.getElementById('normal-force');
+const fDisp = document.getElementById('friction-val');
 
-// Physics Constants
-const g = 9.81;       // Earth gravity
-const mass = 0.5;    // kg
-const friction = 0.97;
+// Physics Setup Variables
+let g = 9.81;
+let mass = 0.5;
+let mu = 0.97; // This acts as our "damping" coefficient in this simplified model
 const sensitivity = 0.06;
 
 // Physics State
@@ -21,54 +22,34 @@ let px = 0; let py = 0;
 let vx = 0; let vy = 0;
 let ax = 0; let ay = 0;
 let tiltX = 0; let tiltY = 0;
-
-// Sensor Calibration
-let calibBeta = null;
-let calibGamma = null;
+let calibBeta = null; let calibGamma = null;
 
 function update() {
-    // Apply Friction
-    vx *= friction;
-    vy *= friction;
-
-    // Integrate Velocity to Position
+    // Apply friction (damping)
+    vx *= mu;
+    vy *= mu;
+    
     px += vx;
     py += vy;
 
-    // Boundaries
     const limitX = window.innerWidth / 2 - 25;
     const limitY = window.innerHeight / 2 - 25;
 
-    // Logic: If ball hits wall, acceleration and velocity for that axis becomes zero (Normal Force equilibrium)
     let displayAx = ax;
     let displayAy = ay;
 
-    if (Math.abs(px) >= limitX) {
-        px = Math.sign(px) * limitX;
-        vx = 0;
-        displayAx = 0;
-    }
-    if (Math.abs(py) >= limitY) {
-        py = Math.sign(py) * limitY;
-        vy = 0;
-        displayAy = 0;
-    }
+    if (Math.abs(px) >= limitX) { px = Math.sign(px) * limitX; vx = 0; displayAx = 0; }
+    if (Math.abs(py) >= limitY) { py = Math.sign(py) * limitY; vy = 0; displayAy = 0; }
 
-    // Normal Force: Fn = m * g * cos(theta)
-    const tiltMagnitude = Math.sqrt(tiltX**2 + tiltY**2);
-    const tiltRad = tiltMagnitude * (Math.PI / 180);
+    // Normal Force calculation
+    const tiltMag = Math.sqrt(tiltX**2 + tiltY**2);
+    const tiltRad = tiltMag * (Math.PI / 180);
     const normalForce = mass * g * Math.cos(tiltRad);
 
-    // Apply Visuals
     ball.style.transform = `translate(${px}px, ${py}px)`;
 
-    // Calculate Resultants for HUD
-    const totalV = Math.sqrt(vx*vx + vy*vy);
-    const totalA = Math.sqrt(displayAx*displayAx + displayAy*displayAy);
-
-    // Update HUD
-    vDisp.innerText = totalV.toFixed(2);
-    aDisp.innerText = totalA.toFixed(2);
+    vDisp.innerText = Math.sqrt(vx*vx + vy*vy).toFixed(2);
+    aDisp.innerText = Math.sqrt(displayAx*displayAx + displayAy*displayAy).toFixed(2);
     txDisp.innerText = tiltX.toFixed(2);
     tyDisp.innerText = tiltY.toFixed(2);
     nfDisp.innerText = normalForce.toFixed(2);
@@ -82,12 +63,9 @@ function handleOrientation(event) {
         calibGamma = event.gamma;
         return;
     }
-
-    // Dynamic Tilt (Current - Calibrated Zero)
     tiltX = event.gamma - calibGamma;
     tiltY = event.beta - calibBeta;
 
-    // Acceleration = change in tilt * sensitivity
     ax = tiltX * sensitivity;
     ay = tiltY * sensitivity;
 
@@ -96,13 +74,20 @@ function handleOrientation(event) {
 }
 
 startBtn.addEventListener('click', () => {
-    // iOS 13+ Permission Request
+    // 1. Capture Form Values
+    mass = parseFloat(document.getElementById('mass-input').value);
+    g = parseFloat(document.getElementById('gravity-input').value);
+    
+    // We'll use the surface value to adjust our friction multiplier
+    // A surface value of 0.05 (Ice) means mu should be near 1.0 (no slow down)
+    // A surface value of 0.60 (Rubber) means mu should be lower (fast slow down)
+    const surfaceVal = parseFloat(document.getElementById('surface-input').value);
+    mu = 1.0 - (surfaceVal * 0.1); 
+    fDisp.innerText = surfaceVal.toFixed(2);
+
+    // 2. Request Permissions
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-            .then(state => {
-                if (state === 'granted') init();
-            })
-            .catch(console.error);
+        DeviceOrientationEvent.requestPermission().then(s => { if(s==='granted') init(); });
     } else {
         init();
     }

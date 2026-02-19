@@ -19,7 +19,32 @@
     <div id="game-container">
         <div id="ui">
             <h1>360° Kinematics</h1>
-            <p>Hold phone naturally and press Start to calibrate</p>
+            <p>Setup your environment:</p>
+            
+            <div class="setup-form">
+                <label>Mass (kg): 
+                    <input type="number" id="mass-input" value="0.5" step="0.1" min="0.1">
+                </label>
+                
+                <label>Surface Type: 
+                    <select id="surface-input">
+                        <option value="0.05">Ice (Low Friction)</option>
+                        <option value="0.30">Wood (Medium Friction)</option>
+                        <option value="0.60">Rubber (High Friction)</option>
+                        <option value="0.00">No Friction (Vacuum)</option>
+                    </select>
+                </label>
+
+                <label>Gravity (Planet): 
+                    <select id="gravity-input">
+                        <option value="9.81">Earth (9.81 m/s²)</option>
+                        <option value="1.62">Moon (1.62 m/s²)</option>
+                        <option value="3.71">Mars (3.71 m/s²)</option>
+                        <option value="24.79">Jupiter (24.79 m/s²)</option>
+                    </select>
+                </label>
+            </div>
+
             <button id="start-button">START SESSION</button>
         </div>
 
