@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Ball Physics Lab</title>
+    <title>Physics Lab: Monkey Ball Challenge</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
 <body>
     <div id="hud" class="hidden">
-        <div class="stat">Velocity ($v$): <span id="v-total">0.00</span> m/s</div>
-        <div class="stat">Normal Force ($F_N$): <span id="normal-force">0.00</span> N</div>
+        <div class="stat header">GAME STATS</div>
+        <div class="stat" style="color:#fbbf24">⏳ Timer: <span id="timer">10.0</span>s</div>
+        <div class="stat" style="color:#a855f7">🎯 Goals: <span id="score">0</span></div>
         <hr>
-        <div class="stat" style="color:#ef4444">● Gravity Component</div>
-        <div class="stat" style="color:#3b82f6">● Friction Force</div>
-        <div class="stat" style="color:#4ade80">● Resultant Net Force</div>
+        <div class="stat header">PHYSICS DATA</div>
+        <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
+        <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
+        <hr>
+        <div class="legend" style="color:#ef4444">🔴 Gravity ($F_g$)</div>
+        <div class="legend" style="color:#3b82f6">🔵 Friction ($F_f$)</div>
+        <div class="legend" style="color:#4ade80">🟢 Net Force ($F_{net}$)</div>
     </div>
 
     <div id="ui">
-        <h1>Monkey Ball Physics</h1>
-        <p style="font-size: 0.8rem; color: #94a3b8;">Calibrate: Hold your device flat before starting.</p>
-        
+        <h1>Physics Challenge</h1>
+        <p>Balance the ball in the yellow ring for 3 seconds.</p>
         <div class="setup-form">
-            <label>Mass of Sphere ($kg$): 
-                <input type="number" id="mass-input" value="0.5" step="0.1">
-            </label>
-            <label>Surface Friction ($\mu$): 
-                <input type="number" id="surface-input" value="0.15" step="0.01">
-            </label>
-            <label>Gravitational Field ($g$): 
+            <label>Mass (kg): <input type="number" id="mass-input" value="0.5" step="0.1"></label>
+            <label>Friction (μ): <input type="number" id="surface-input" value="0.15" step="0.01"></label>
+            <label>Gravity: 
                 <select id="gravity-input">
                     <option value="9.81">Earth (9.81 m/s²)</option>
-                    <option value="1.62">The Moon (1.62 m/s²)</option>
+                    <option value="1.62">Moon (1.62 m/s²)</option>
                     <option value="3.71">Mars (3.71 m/s²)</option>
                 </select>
             </label>
         </div>
-        
-        <button id="start-button">INITIALIZE LAB SESSION</button>
+        <button id="start-button">START EXPERIMENT</button>
+        <p class="note">Note: Hold phone flat to calibrate.</p>
     </div>
 
     <script src="index.js"></script>
