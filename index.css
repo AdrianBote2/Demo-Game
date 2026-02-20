@@ -1,4 +1,4 @@
-/* Core Styling */
+/* Your Core Styling */
 body { 
     margin: 0; 
     background: #020617; 
@@ -9,7 +9,7 @@ body {
 
 canvas { display: block; width: 100vw; height: 100vh; }
 
-/* The Glassmorphism HUD */
+/* The Glassmorphism HUD with Toggle Support */
 #hud {
     position: absolute; 
     top: 20px; 
@@ -22,13 +22,29 @@ canvas { display: block; width: 100vw; height: 100vh; }
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     border: 1px solid rgba(255, 255, 255, 0.1); 
     z-index: 10; 
-    pointer-events: none;
+    width: 200px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* Toggle Logic */
+#hud-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    max-height: 500px; /* Large enough for content */
+}
+
+#hud.collapsed #hud-content {
+    max-height: 0;
+}
+
+#hud.collapsed {
+    padding-bottom: 10px;
 }
 
 #hud hr { border: 0; border-top: 1px solid #334155; margin: 10px 0; }
 .stat { font-size: 0.9rem; margin-bottom: 5px; }
-.header { font-size: 0.7rem; color: #64748b; letter-spacing: 1px; margin-bottom: 8px; font-weight: bold; }
+.header { font-size: 0.7rem; color: #64748b; letter-spacing: 1px; font-weight: bold; }
 .legend { font-size: 0.75rem; margin-top: 4px; }
 
 /* Start Menu */
@@ -82,6 +98,4 @@ button {
 }
 
 button:hover { background: #67e8f9; }
-.note { font-size: 0.7rem; margin-top: 15px; color: #475569; }
-
 .hidden { display: none; }
