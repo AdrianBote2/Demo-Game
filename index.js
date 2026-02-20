@@ -10,7 +10,7 @@ function initThree() {
 
     // 2. Helicopter Camera (Look down from corner)
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(25, 35, 25);
+    camera.position.set(35, 35, 35);
     camera.lookAt(0, 0, 0);
 
     // 3. Renderer
