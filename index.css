@@ -17,7 +17,7 @@ html, body {
 }
 
 #hud { top: 10px; left: 10px; color: #22d3ee; font-family: monospace; }
-#challenge-box { top: 10px; right: 10px; width: 200px; color: #fbbf24; border-color: #fbbf24; }
+#challenge-box { top: 10px; right: 10px; width: 130px; color: #fbbf24; border-color: #fbbf24; }
 
 .stat { font-size: 0.8rem; margin-bottom: 3px; }
 #timer-display { font-size: 1.2rem; font-weight: bold; margin-top: 5px; }
@@ -41,7 +41,7 @@ button { width: 100%; background: #22d3ee; color: #0f172a; border: none; padding
 
 #target-zone {
     position: absolute; top: 50%; left: 50%;
-    width: 80px; height: 80px; margin: -40px 0 0 -40px;
+    width: 60px; height: 60px; margin: -40px 0 0 -40px;
     border: 2px dashed #fbbf24; border-radius: 50%;
     background: rgba(251, 191, 36, 0.1); z-index: 1;
 }
