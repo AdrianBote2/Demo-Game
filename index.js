@@ -22,7 +22,7 @@ function initThree() {
     document.body.appendChild(renderer.domElement);
 
     // 2. THE PLATFORM (18 x 18)
-    const platformSize = 18;
+    const platformSize = 20;
     
     // The Visual Grid (18 units wide, 18 divisions)
     const gridHelper = new THREE.GridHelper(platformSize, 18, 0x4ade80, 0x1e293b);
