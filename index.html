@@ -3,39 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Kinematics Lab | Three.js</title>
+    <title>3D Ball Physics Lab</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
 <body>
     <div id="hud" class="hidden">
-        <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
-        <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
+        <div class="stat">Velocity ($v$): <span id="v-total">0.00</span> m/s</div>
+        <div class="stat">Normal Force ($F_N$): <span id="normal-force">0.00</span> N</div>
         <hr>
-        <div class="stat" style="color:#ef4444">● Gravity Vector ($F_g$)</div>
-        <div class="stat" style="color:#3b82f6">● Friction Vector ($F_f$)</div>
-        <div class="stat" style="color:#4ade80">● Net Force ($F_{net}$)</div>
+        <div class="stat" style="color:#ef4444">● Gravity Component</div>
+        <div class="stat" style="color:#3b82f6">● Friction Force</div>
+        <div class="stat" style="color:#4ade80">● Resultant Net Force</div>
     </div>
 
     <div id="ui">
-        <h1>3D Physics Lab</h1>
-        <p>Calibrate your device by holding it flat.</p>
+        <h1>Monkey Ball Physics</h1>
+        <p style="font-size: 0.8rem; color: #94a3b8;">Calibrate: Hold your device flat before starting.</p>
+        
         <div class="setup-form">
-            <label>Mass ($m$ in kg):
+            <label>Mass of Sphere ($kg$): 
                 <input type="number" id="mass-input" value="0.5" step="0.1">
             </label>
-            <label>Friction ($\mu$):
+            <label>Surface Friction ($\mu$): 
                 <input type="number" id="surface-input" value="0.15" step="0.01">
             </label>
-            <label>Gravity ($g$): 
+            <label>Gravitational Field ($g$): 
                 <select id="gravity-input">
                     <option value="9.81">Earth (9.81 m/s²)</option>
-                    <option value="1.62">Moon (1.62 m/s²)</option>
+                    <option value="1.62">The Moon (1.62 m/s²)</option>
                     <option value="3.71">Mars (3.71 m/s²)</option>
                 </select>
             </label>
         </div>
-        <button id="start-button">START WEBGL SESSION</button>
+        
+        <button id="start-button">INITIALIZE LAB SESSION</button>
     </div>
 
     <script src="index.js"></script>
