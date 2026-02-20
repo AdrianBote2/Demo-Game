@@ -1,29 +1,13 @@
 let scene, camera, renderer, ball, platformGroup, goalRing;
-let px = 0, py = 0.5, pz = 5, vx = 0, vy = 0, vz = 0;
+let px = 0, py = 5, pz = 5, vx = 0, vy = 0, vz = 0;
 let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
-let mass = 0.5, mu = 0.05, g = 9.81;
+let mass = 0.5, mu = 0.08, g = 9.81;
 let floorMeshes = [], gameActive = false;
 
 // Game State
 let currentMode = 'sandbox'; 
 let goalX = 5, goalZ = 5, score = 0, timeLeft = 10.0, stayTimer = 0;
 
-/* --- UI Logic --- */
-document.getElementById('mode-sandbox').addEventListener('click', () => {
-    currentMode = 'sandbox';
-    document.getElementById('mode-sandbox').classList.add('active');
-    document.getElementById('mode-challenge').classList.remove('active');
-    document.getElementById('mode-description').innerText = "Free play! Explore inertia, friction, and gravity without limits.";
-});
-
-document.getElementById('mode-challenge').addEventListener('click', () => {
-    currentMode = 'challenge';
-    document.getElementById('mode-challenge').classList.add('active');
-    document.getElementById('mode-sandbox').classList.remove('active');
-    document.getElementById('mode-description').innerText = "Challenge: Stay in the ring for 3s to reset the 10s timer!";
-});
-
-/* --- Core Engine --- */
 function initThree() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
@@ -43,26 +27,28 @@ function initThree() {
     const matFlat = new THREE.MeshPhongMaterial({ color: 0x1e293b });
     const matSlope = new THREE.MeshPhongMaterial({ color: 0x334155 });
 
-    // --- LEVEL DESIGN ---
-    // Ground level quadrants (Flat)
-    createBox(10, 1, 10, -5, -0.5, 5, matFlat); 
-    createBox(10, 1, 10, 5, -0.5, 5, matFlat);
+    // --- PLATFORM GEOMETRY ---
+    // Ground level quadrants (The safe spawn area)
+    createBox(10, 1, 10, -5, -0.5, 5, matFlat); // Q3
+    createBox(10, 1, 10, 5, -0.5, 5, matFlat);  // Q4
 
-    // Sloped quadrants (Fixed 30 degrees)
+    // Sloped quadrants (30 degrees)
+    // We increase the Y position so they meet the flat floor at the center line (Z=0)
     const slopeGeo = new THREE.BoxGeometry(10, 1, 12);
+    
     const s1 = new THREE.Mesh(slopeGeo, matSlope);
-    s1.position.set(-5, 2, -5); 
+    s1.position.set(-5, 2.5, -5.5); 
     s1.rotation.x = Math.PI / 6; // 30 degrees
     platformGroup.add(s1); 
     floorMeshes.push(s1);
 
     const s2 = new THREE.Mesh(slopeGeo, matSlope);
-    s2.position.set(5, 2, -5); 
+    s2.position.set(5, 2.5, -5.5); 
     s2.rotation.x = Math.PI / 6; 
     platformGroup.add(s2); 
     floorMeshes.push(s2);
 
-    // Challenge Goal Ring
+    // Goal Ring
     goalRing = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.1, 16, 100), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
     goalRing.rotation.x = Math.PI / 2;
     platformGroup.add(goalRing);
@@ -74,7 +60,6 @@ function initThree() {
     ball.castShadow = true;
     scene.add(ball);
 
-    // Lights
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(10, 50, 10);
@@ -97,30 +82,27 @@ function createBox(w, h, d, x, y, z, material) {
 function spawnGoal() {
     goalX = (Math.random() - 0.5) * 16;
     goalZ = (Math.random() - 0.5) * 16;
-    // Elevate the goal if it spawns on the slopes
-    const goalY = (goalZ < 0) ? 2.1 : 0.05;
-    goalRing.position.set(goalX, goalY, goalZ);
+    // Raycast to find the correct height for the goal ring
+    const ray = new THREE.Raycaster(new THREE.Vector3(goalX, 10, goalZ), new THREE.Vector3(0, -1, 0));
+    const hit = ray.intersectObjects(floorMeshes.concat(platformGroup.children));
+    if (hit.length > 0) {
+        goalRing.position.set(goalX, hit[0].point.y + 0.1, goalZ);
+        // Match the rotation of the floor it's on
+        goalRing.rotation.x = hit[0].object.rotation.x + (Math.PI / 2);
+    }
 }
 
 function handleOrientation(e) {
-    if (calibBeta === null) {
-        calibBeta = e.beta;
-        calibGamma = e.gamma;
-        return;
-    }
-
-    // --- CORRECTION FOR PHONE DIRECTION ---
+    if (calibBeta === null) { calibBeta = e.beta; calibGamma = e.gamma; return; }
+    
+    // Correction for Portrait/Landscape
     let orientation = window.orientation || 0;
-
-    if (orientation === 0) { // Portrait
+    if (orientation === 0) {
         tiltX = e.gamma - calibGamma;
         tiltY = e.beta - calibBeta;
-    } else if (orientation === 90) { // Landscape Left
+    } else {
         tiltX = e.beta - calibBeta;
         tiltY = -(e.gamma - calibGamma);
-    } else if (orientation === -90) { // Landscape Right
-        tiltX = -(e.beta - calibBeta);
-        tiltY = e.gamma - calibGamma;
     }
 }
 
@@ -128,78 +110,83 @@ function animate() {
     if (!gameActive) return;
     requestAnimationFrame(animate);
 
-    // Smooth tilt application
+    // 1. Rotate the whole world
     const radX = THREE.MathUtils.degToRad(Math.max(-30, Math.min(30, tiltX)) * 0.6);
     const radZ = THREE.MathUtils.degToRad(Math.max(-30, Math.min(30, tiltY)) * 0.6);
-    
     platformGroup.rotation.z = -radX;
     platformGroup.rotation.x = radZ;
 
-    // Physics: Raycast Down to detect if on flat or slope
+    // 2. Raycast to find the floor relative to the tilting world
     const raycaster = new THREE.Raycaster(new THREE.Vector3(px, py + 1, pz), new THREE.Vector3(0, -1, 0));
-    const intersects = raycaster.intersectObjects(floorMeshes);
+    const intersects = raycaster.intersectObjects(floorMeshes.concat(platformGroup.children));
 
-    if (intersects.length > 0 && intersects[0].distance <= 1.1) {
-        py = intersects[0].point.y + 0.5;
-        vy = 0;
+    if (intersects.length > 0) {
+        const dist = intersects[0].distance;
+        const groundY = intersects[0].point.y + 0.5;
 
-        // Acceleration from tilt
-        vx += (radX * g) * 0.02;
-        vz -= (radZ * g) * 0.02;
+        // If the ball is very close to the floor, stick it and apply tilt forces
+        if (dist <= 1.1) {
+            py = groundY;
+            vy = 0;
 
-        // Apply Friction
-        vx *= (1 - mu);
-        vz *= (1 - mu);
+            // Physics logic: Move based on the platform's tilt
+            vx += (radX * g) * 0.018;
+            vz -= (radZ * g) * 0.018;
+
+            // Slope Physics: If on a ramp, add the local slope acceleration
+            const surfaceRotation = intersects[0].object.rotation.x;
+            if (surfaceRotation !== 0) {
+                vz -= Math.sin(surfaceRotation) * g * 0.016;
+            }
+
+            vx *= (1 - mu);
+            vz *= (1 - mu);
+        } else {
+            // Air physics (Gravity)
+            vy -= g * 0.016;
+            py += vy;
+        }
     } else {
-        // Falling Physics
+        // Falling off the edge
         vy -= g * 0.016;
         py += vy;
-        if (py < -15) resetBall();
     }
 
     px += vx;
     pz += vz;
+
+    // Boundary Check / Reset
+    if (py < -15 || Math.abs(px) > 15 || Math.abs(pz) > 15) resetBall();
+
     ball.position.set(px, py, pz);
 
-    // --- CHALLENGE MODE LOGIC ---
+    // --- MODE LOGIC ---
     if (currentMode === 'challenge') {
         timeLeft -= 0.016;
-        const worldGoalPos = new THREE.Vector3();
-        goalRing.getWorldPosition(worldGoalPos);
-        const dist = ball.position.distanceTo(worldGoalPos);
-        
-        if (dist < 1.3 && Math.abs(vx) < 0.08 && Math.abs(vz) < 0.08) {
+        const dist = ball.position.distanceTo(goalRing.getWorldPosition(new THREE.Vector3()));
+        if (dist < 1.3 && Math.abs(vx) < 0.1 && Math.abs(vz) < 0.1) {
             stayTimer += 0.016;
             goalRing.material.color.set(0x4ade80);
-            if (stayTimer >= 3) {
-                score++;
-                timeLeft = 10.0;
-                stayTimer = 0;
-                spawnGoal();
-            }
+            if (stayTimer >= 2) { score++; timeLeft = 10.0; stayTimer = 0; spawnGoal(); }
         } else {
             stayTimer = 0;
             goalRing.material.color.set(0xfbbf24);
         }
-
-        if (timeLeft <= 0) {
-            gameActive = false;
-            alert("Game Over! Your Score: " + score);
-            location.reload();
-        }
+        if (timeLeft <= 0) { gameActive = false; alert("Score: " + score); location.reload(); }
         document.getElementById('timer').innerText = Math.max(0, timeLeft).toFixed(1);
         document.getElementById('score').innerText = score;
     }
 
-    // UI Updates
     document.getElementById('v-total').innerText = Math.sqrt(vx*vx + vz*vz).toFixed(2);
     renderer.render(scene, camera);
 }
 
 function resetBall() {
-    px = 0; py = 2; pz = 5; 
+    px = 0; py = 5; pz = 5; // Spawn above the flat quadrants
     vx = 0; vy = 0; vz = 0;
 }
+
+// Start Listeners... (Rest remains same as previous version)
 
 /* --- Start Listener --- */
 document.getElementById('start-button').addEventListener('click', () => {
