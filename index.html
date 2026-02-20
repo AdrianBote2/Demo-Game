@@ -10,37 +10,38 @@
     <div id="hud" class="hidden">
         <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
         <div class="stat">Acceleration: <span id="a-total">0.00</span> m/s²</div>
-        <div class="stat">Tilt X: <span id="tilt-x">0.00</span>°</div>
-        <div class="stat">Tilt Y: <span id="tilt-y">0.00</span>°</div>
-        <div class="stat">Friction (μ): <span id="friction-val">0.00</span></div>
+        <div class="stat">Tilt X/Y: <span id="tilt-x">0</span>°, <span id="tilt-y">0</span>°</div>
         <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
+        <div class="stat">Friction (μ): <span id="friction-val">0.00</span></div>
+    </div>
+
+    <div id="challenge-box" class="hidden">
+        <h3>Current Objective</h3>
+        <p id="objective-text">Achieve <b>Static Equilibrium</b>: Hold ball in center for 3s.</p>
+        <div id="timer-display">Hold Time: <span id="hold-timer">0.0</span>s</div>
     </div>
 
     <div id="game-container">
-        <div id="ui">
-            <h1>360° Kinematics</h1>
-            <p>Setup your environment:</p>
-            
-            <div class="setup-form">
-                <label>Mass (kg):
-                    <input type="number" id="mass-input" placeholder="e.g. 0.5" value="0.5" step="0.1">
-                </label>
-                
-                <label>Friction Coeff (0.0 to 0.5):
-                    <input type="number" id="surface-input" placeholder="e.g. 0.1" value="0.1" step="0.01">
-                </label>
+        <div id="target-zone" class="hidden"></div>
 
-                <label>Gravity (Planet): 
+        <div id="ui">
+            <h1>Kinematics Pro Lab</h1>
+            <div class="setup-form">
+                <label>Mass ($m$ in kg):
+                    <input type="number" id="mass-input" value="0.5" step="0.1">
+                </label>
+                <label>Friction Coeff ($\mu$):
+                    <input type="number" id="surface-input" value="0.15" step="0.05">
+                </label>
+                <label>Gravity ($g$): 
                     <select id="gravity-input">
-                        <option value="9.81" selected>Earth (9.81 m/s²)</option>
+                        <option value="9.81">Earth (9.81 m/s²)</option>
                         <option value="1.62">Moon (1.62 m/s²)</option>
                         <option value="3.71">Mars (3.71 m/s²)</option>
-                        <option value="24.79">Jupiter (24.79 m/s²)</option>
                     </select>
                 </label>
             </div>
-
-            <button id="start-button">START SESSION</button>
+            <button id="start-button">CALIBRATE & START</button>
         </div>
 
         <div id="ball"></div>

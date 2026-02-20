@@ -2,54 +2,84 @@ const ball = document.getElementById('ball');
 const startBtn = document.getElementById('start-button');
 const ui = document.getElementById('ui');
 const hud = document.getElementById('hud');
+const targetZone = document.getElementById('target-zone');
+const challengeBox = document.getElementById('challenge-box');
+const holdTimerDisp = document.getElementById('hold-timer');
+const objectiveText = document.getElementById('objective-text');
 
-const vDisp = document.getElementById('v-total');
-const aDisp = document.getElementById('a-total');
-const txDisp = document.getElementById('tilt-x');
-const tyDisp = document.getElementById('tilt-y');
-const nfDisp = document.getElementById('normal-force');
-const fDisp = document.getElementById('friction-val');
+const vDisp = document.getElementById('v-total'), aDisp = document.getElementById('a-total');
+const txDisp = document.getElementById('tilt-x'), tyDisp = document.getElementById('tilt-y');
+const nfDisp = document.getElementById('normal-force'), fDisp = document.getElementById('friction-val');
 
-let g = 9.81;
-let mass = 0.5;
-let mu = 0.1; 
-const baseSensitivity = 0.08;
-
+// Physics Vars
+let g, mass, mu;
 let px = 0, py = 0, vx = 0, vy = 0, ax = 0, ay = 0;
 let tiltX = 0, tiltY = 0;
 let calibBeta = null, calibGamma = null;
 
+// Game Vars
+let holdStartTime = null;
+let challengeComplete = false;
+
 function update() {
-    // 1. Friction Calculation (Force of Friction = mu * m * g * cos(theta))
-    const tiltMag = Math.sqrt(tiltX**2 + tiltY**2);
-    const tiltRad = tiltMag * (Math.PI / 180);
-    const normalForce = mass * g * Math.cos(tiltRad);
+    // 1. Force Calculations
+    const radX = (tiltX * Math.PI) / 180;
+    const radY = (tiltY * Math.PI) / 180;
+    const totalTiltRad = Math.sqrt(radX**2 + radY**2);
     
-    // Convert friction into a deceleration factor
-    // We use a simplified damping based on the user's mu input
-    let damping = 1.0 - (mu * 0.5); 
-    damping = Math.max(0.5, Math.min(damping, 1.0));
+    const normalForce = mass * g * Math.cos(totalTiltRad);
+    const fgX = mass * g * Math.sin(radX);
+    const fgY = mass * g * Math.sin(radY);
+    const maxFriction = mu * normalForce;
 
-    vx *= damping;
-    vy *= damping;
-    
-    px += vx;
-    py += vy;
+    // 2. Net Force Logic (Newton's 2nd Law)
+    if (Math.abs(fgX) > maxFriction) {
+        ax = (fgX - (Math.sign(fgX) * maxFriction)) / mass;
+    } else {
+        ax = 0; vx *= 0.92; if (Math.abs(vx) < 0.05) vx = 0;
+    }
 
-    const limitX = window.innerWidth / 2 - (ball.offsetWidth / 2);
-    const limitY = window.innerHeight / 2 - (ball.offsetHeight / 2);
+    if (Math.abs(fgY) > maxFriction) {
+        ay = (fgY - (Math.sign(fgY) * maxFriction)) / mass;
+    } else {
+        ay = 0; vy *= 0.92; if (Math.abs(vy) < 0.05) vy = 0;
+    }
 
-    let dAx = ax, dAy = ay;
-    if (Math.abs(px) >= limitX) { px = Math.sign(px) * limitX; vx = 0; dAx = 0; }
-    if (Math.abs(py) >= limitY) { py = Math.sign(py) * limitY; vy = 0; dAy = 0; }
+    // 3. Movement
+    vx += ax; vy += ay;
+    px += vx; py += vy;
 
+    // 4. Boundaries
+    const limX = window.innerWidth / 2 - 20;
+    const limY = window.innerHeight / 2 - 20;
+    if (Math.abs(px) >= limX) { px = Math.sign(px) * limX; vx = 0; ax = 0; }
+    if (Math.abs(py) >= limY) { py = Math.sign(py) * limY; vy = 0; ay = 0; }
+
+    // 5. Challenge Logic: Check Target
+    const distance = Math.sqrt(px * px + py * py);
+    const currentSpeed = Math.sqrt(vx * vx + vy * vy);
+
+    if (distance < 40 && currentSpeed < 0.5 && !challengeComplete) {
+        if (!holdStartTime) holdStartTime = Date.now();
+        let elapsed = (Date.now() - holdStartTime) / 1000;
+        holdTimerDisp.innerText = elapsed.toFixed(1);
+        if (elapsed >= 3) {
+            challengeComplete = true;
+            objectiveText.innerHTML = "<b>LEVEL COMPLETE</b><br>Equilibrium achieved.";
+            challengeBox.style.borderColor = "#4ade80";
+        }
+    } else {
+        holdStartTime = null;
+        if (!challengeComplete) holdTimerDisp.innerText = "0.0";
+    }
+
+    // 6. HUD & Visuals
     ball.style.transform = `translate(${px}px, ${py}px)`;
-
-    vDisp.innerText = Math.sqrt(vx*vx + vy*vy).toFixed(2);
-    aDisp.innerText = Math.sqrt(dAx*dAx + dAy*dAy).toFixed(2);
-    txDisp.innerText = tiltX.toFixed(2);
-    tyDisp.innerText = tiltY.toFixed(2);
-    nfDisp.innerText = normalForce.toFixed(2);
+    vDisp.innerText = currentSpeed.toFixed(2);
+    aDisp.innerText = Math.sqrt(ax*ax + ay*ay).toFixed(2);
+    txDisp.innerText = Math.round(tiltX);
+    tyDisp.innerText = Math.round(tiltY);
+    nfDisp.innerText = Math.abs(normalForce).toFixed(2);
 
     requestAnimationFrame(update);
 }
@@ -62,36 +92,24 @@ function handleOrientation(event) {
     }
     tiltX = event.gamma - calibGamma;
     tiltY = event.beta - calibBeta;
-
-    // F = ma -> a = F/m
-    ax = (tiltX * baseSensitivity) / (mass + 0.5);
-    ay = (tiltY * baseSensitivity) / (mass + 0.5);
-    vx += ax;
-    vy += ay;
 }
 
 startBtn.addEventListener('click', () => {
-    // Collect typed values
     mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
-    mu = parseFloat(document.getElementById('surface-input').value) || 0.1;
+    mu = parseFloat(document.getElementById('surface-input').value) || 0.15;
     g = parseFloat(document.getElementById('gravity-input').value);
-    
     fDisp.innerText = mu.toFixed(2);
 
-    // Visual scale based on typed mass
-    let size = 30 + (Math.min(mass, 10) * 8); 
-    ball.style.width = size + 'px';
-    ball.style.height = size + 'px';
-    ball.style.margin = `-${size/2}px 0 0 -${size/2}px`;
-
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(s => { if(s==='granted') init(); });
+        DeviceOrientationEvent.requestPermission().then(s => { if(s === 'granted') init(); });
     } else { init(); }
 });
 
 function init() {
     ui.style.display = 'none';
     hud.classList.remove('hidden');
+    challengeBox.classList.remove('hidden');
+    targetZone.classList.remove('hidden');
     window.addEventListener('deviceorientation', handleOrientation);
     update();
 }
