@@ -10,7 +10,7 @@ function initThree() {
     scene.background = new THREE.Color(0x020617);
 
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(25, 30, 25); 
+    camera.position.set(35, 40, 35); 
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
