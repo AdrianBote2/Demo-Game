@@ -4,8 +4,24 @@ let px = 0, pz = 0, vx = 0, vz = 0;
 let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
 let mass = 0.5, mu = 0.15, g = 9.81;
 
-// Game State
+// Engine State
+let currentMode = 'sandbox'; 
 let goalX = 5, goalZ = 5, score = 0, timeLeft = 10.0, stayTimer = 0, gameActive = false;
+
+// UI Selection Logic
+document.getElementById('mode-sandbox').addEventListener('click', () => {
+    currentMode = 'sandbox';
+    document.getElementById('mode-sandbox').classList.add('active');
+    document.getElementById('mode-challenge').classList.remove('active');
+    document.getElementById('mode-description').innerText = "Free play! Explore inertia, friction, and gravity without limits.";
+});
+
+document.getElementById('mode-challenge').addEventListener('click', () => {
+    currentMode = 'challenge';
+    document.getElementById('mode-challenge').classList.add('active');
+    document.getElementById('mode-sandbox').classList.remove('active');
+    document.getElementById('mode-description').innerText = "Challenge: Stay in the ring for 3s to reset the 10s timer!";
+});
 
 function initThree() {
     scene = new THREE.Scene();
@@ -22,25 +38,21 @@ function initThree() {
     platformGroup = new THREE.Group();
     scene.add(platformGroup);
 
-    // Platform
-    const platformSize = 22;
-    platformGroup.add(new THREE.GridHelper(platformSize, 22, 0x4ade80, 0x1e293b));
-    const base = new THREE.Mesh(new THREE.BoxGeometry(platformSize, 1, platformSize), new THREE.MeshPhongMaterial({ color: 0x1e293b }));
+    platformGroup.add(new THREE.GridHelper(22, 22, 0x4ade80, 0x1e293b));
+    const base = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 22), new THREE.MeshPhongMaterial({ color: 0x1e293b }));
     base.position.y = -0.5; base.receiveShadow = true;
     platformGroup.add(base);
 
-    // Goal
     goalRing = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.1, 16, 100), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
     goalRing.rotation.x = Math.PI / 2; goalRing.position.y = 0.05;
     platformGroup.add(goalRing);
+    goalRing.visible = (currentMode === 'challenge');
     spawnGoal();
 
-    // Ball
     ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 80 }));
     ball.position.set(0, 0.5, 0); ball.castShadow = true;
     platformGroup.add(ball);
 
-    // Vectors
     arrowG = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0xef4444);
     arrowF = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x3b82f6);
     arrowN = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x4ade80);
@@ -92,24 +104,26 @@ function animate() {
     ball.position.set(px, 0.5, pz);
     ball.rotation.z -= vx; ball.rotation.x += vz;
 
-    // Game Logic
-    timeLeft -= 0.016;
-    const dist = Math.sqrt((px - goalX)**2 + (pz - goalZ)**2);
-    if (dist < 1.2 && Math.abs(vx) < 0.05 && Math.abs(vz) < 0.05) {
-        stayTimer += 0.016;
-        goalRing.material.color.set(0x4ade80);
-        if (stayTimer >= 3) { score++; timeLeft = 10.0; stayTimer = 0; spawnGoal(); }
-    } else { stayTimer = 0; goalRing.material.color.set(0xfbbf24); }
+    // Mode Specific Updates
+    if (currentMode === 'challenge') {
+        timeLeft -= 0.016;
+        const dist = Math.sqrt((px - goalX)**2 + (pz - goalZ)**2);
+        if (dist < 1.2 && Math.abs(vx) < 0.05 && Math.abs(vz) < 0.05) {
+            stayTimer += 0.016;
+            goalRing.material.color.set(0x4ade80);
+            if (stayTimer >= 3) { score++; timeLeft = 10.0; stayTimer = 0; spawnGoal(); }
+        } else { stayTimer = 0; goalRing.material.color.set(0xfbbf24); }
 
-    if (timeLeft <= 0) { gameActive = false; alert("Score: " + score); location.reload(); }
+        if (timeLeft <= 0) { gameActive = false; alert("Challenge Finished! Score: " + score); location.reload(); }
+        document.getElementById('timer').innerText = Math.max(0, timeLeft).toFixed(1);
+        document.getElementById('score').innerText = score;
+    }
 
     const wPos = new THREE.Vector3(); ball.getWorldPosition(wPos);
     updateArrow(arrowG, fgX, fgZ, wPos, 0.5);
     updateArrow(arrowF, -vx * 10, -vz * 10, wPos, 0.6);
     updateArrow(arrowN, nFX, nFZ, wPos, 0.7);
 
-    document.getElementById('timer').innerText = Math.max(0, timeLeft).toFixed(1);
-    document.getElementById('score').innerText = score;
     document.getElementById('v-total').innerText = Math.sqrt(vx*vx + vz*vz).toFixed(2);
     document.getElementById('normal-force').innerText = normalForce.toFixed(2);
     renderer.render(scene, camera);
@@ -123,13 +137,19 @@ function updateArrow(a, fx, fz, p, h) {
     } else { a.visible = false; }
 }
 
-// UI Controls
+// Control Event Listeners
 document.getElementById('start-button').addEventListener('click', () => {
     mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
     mu = parseFloat(document.getElementById('surface-input').value) || 0.15;
     g = parseFloat(document.getElementById('gravity-input').value) || 9.81;
     document.getElementById('ui').style.display = 'none';
     document.getElementById('hud').classList.remove('hidden');
+    
+    if(currentMode === 'sandbox') {
+        document.getElementById('game-stats').classList.add('hidden');
+        document.getElementById('sandbox-controls').classList.remove('hidden');
+    }
+
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission().then(res => { if (res === 'granted') initThree(); });
     } else { initThree(); }
@@ -137,7 +157,10 @@ document.getElementById('start-button').addEventListener('click', () => {
 
 document.getElementById('toggle-hud').addEventListener('click', () => {
     const hud = document.getElementById('hud');
-    const btn = document.getElementById('toggle-hud');
     hud.classList.toggle('collapsed');
-    btn.innerText = hud.classList.contains('collapsed') ? '▶' : '▼';
+    document.getElementById('toggle-hud').innerText = hud.classList.contains('collapsed') ? '▶' : '▼';
+});
+
+document.getElementById('reset-ball-btn').addEventListener('click', () => {
+    px = 0; pz = 0; vx = 0; vz = 0;
 });
