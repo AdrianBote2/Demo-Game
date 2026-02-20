@@ -12,35 +12,41 @@ const fDisp = document.getElementById('friction-val');
 
 let g = 9.81;
 let mass = 0.5;
-let mu = 0.97; 
-const sensitivity = 0.06;
+let mu = 0.1; 
+const baseSensitivity = 0.08;
 
 let px = 0, py = 0, vx = 0, vy = 0, ax = 0, ay = 0;
 let tiltX = 0, tiltY = 0;
 let calibBeta = null, calibGamma = null;
 
 function update() {
-    vx *= mu;
-    vy *= mu;
-    px += vx;
-    py += vy;
-
-    const limitX = window.innerWidth / 2 - 25;
-    const limitY = window.innerHeight / 2 - 25;
-
-    let displayAx = ax, displayAy = ay;
-
-    if (Math.abs(px) >= limitX) { px = Math.sign(px) * limitX; vx = 0; displayAx = 0; }
-    if (Math.abs(py) >= limitY) { py = Math.sign(py) * limitY; vy = 0; displayAy = 0; }
-
+    // 1. Friction Calculation (Force of Friction = mu * m * g * cos(theta))
     const tiltMag = Math.sqrt(tiltX**2 + tiltY**2);
     const tiltRad = tiltMag * (Math.PI / 180);
     const normalForce = mass * g * Math.cos(tiltRad);
+    
+    // Convert friction into a deceleration factor
+    // We use a simplified damping based on the user's mu input
+    let damping = 1.0 - (mu * 0.5); 
+    damping = Math.max(0.5, Math.min(damping, 1.0));
+
+    vx *= damping;
+    vy *= damping;
+    
+    px += vx;
+    py += vy;
+
+    const limitX = window.innerWidth / 2 - (ball.offsetWidth / 2);
+    const limitY = window.innerHeight / 2 - (ball.offsetHeight / 2);
+
+    let dAx = ax, dAy = ay;
+    if (Math.abs(px) >= limitX) { px = Math.sign(px) * limitX; vx = 0; dAx = 0; }
+    if (Math.abs(py) >= limitY) { py = Math.sign(py) * limitY; vy = 0; dAy = 0; }
 
     ball.style.transform = `translate(${px}px, ${py}px)`;
 
     vDisp.innerText = Math.sqrt(vx*vx + vy*vy).toFixed(2);
-    aDisp.innerText = Math.sqrt(displayAx*displayAx + displayAy*displayAy).toFixed(2);
+    aDisp.innerText = Math.sqrt(dAx*dAx + dAy*dAy).toFixed(2);
     txDisp.innerText = tiltX.toFixed(2);
     tyDisp.innerText = tiltY.toFixed(2);
     nfDisp.innerText = normalForce.toFixed(2);
@@ -56,27 +62,31 @@ function handleOrientation(event) {
     }
     tiltX = event.gamma - calibGamma;
     tiltY = event.beta - calibBeta;
-    ax = tiltX * sensitivity;
-    ay = tiltY * sensitivity;
+
+    // F = ma -> a = F/m
+    ax = (tiltX * baseSensitivity) / (mass + 0.5);
+    ay = (tiltY * baseSensitivity) / (mass + 0.5);
     vx += ax;
     vy += ay;
 }
 
 startBtn.addEventListener('click', () => {
-    // Collect dropdown values
-    mass = parseFloat(document.getElementById('mass-input').value);
+    // Collect typed values
+    mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
+    mu = parseFloat(document.getElementById('surface-input').value) || 0.1;
     g = parseFloat(document.getElementById('gravity-input').value);
-    const surfaceVal = parseFloat(document.getElementById('surface-input').value);
     
-    // Friction mapping (higher surface friction = lower velocity retention)
-    mu = 1.0 - (surfaceVal * 0.1); 
-    fDisp.innerText = surfaceVal.toFixed(2);
+    fDisp.innerText = mu.toFixed(2);
+
+    // Visual scale based on typed mass
+    let size = 30 + (Math.min(mass, 10) * 8); 
+    ball.style.width = size + 'px';
+    ball.style.height = size + 'px';
+    ball.style.margin = `-${size/2}px 0 0 -${size/2}px`;
 
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission().then(s => { if(s==='granted') init(); });
-    } else {
-        init();
-    }
+    } else { init(); }
 });
 
 function init() {

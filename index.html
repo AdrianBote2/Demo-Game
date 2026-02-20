@@ -12,7 +12,7 @@
         <div class="stat">Acceleration: <span id="a-total">0.00</span> m/s²</div>
         <div class="stat">Tilt X: <span id="tilt-x">0.00</span>°</div>
         <div class="stat">Tilt Y: <span id="tilt-y">0.00</span>°</div>
-        <div class="stat">Friction (μ): <span id="friction-val">0.97</span></div>
+        <div class="stat">Friction (μ): <span id="friction-val">0.00</span></div>
         <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
     </div>
 
@@ -22,22 +22,12 @@
             <p>Setup your environment:</p>
             
             <div class="setup-form">
-                <label>Mass (kg): 
-                    <select id="mass-input">
-                        <option value="0.1">0.1 kg (Light)</option>
-                        <option value="0.5" selected>0.5 kg (Standard)</option>
-                        <option value="1.0">1.0 kg (Heavy)</option>
-                        <option value="5.0">5.0 kg (Very Heavy)</option>
-                    </select>
+                <label>Mass (kg):
+                    <input type="number" id="mass-input" placeholder="e.g. 0.5" value="0.5" step="0.1">
                 </label>
                 
-                <label>Surface Type: 
-                    <select id="surface-input">
-                        <option value="0.05">Ice (Low Friction)</option>
-                        <option value="0.30" selected>Wood (Medium Friction)</option>
-                        <option value="2.60">Rubber (High Friction)</option>
-                        <option value="0.00">No Friction (Vacuum)</option>
-                    </select>
+                <label>Friction Coeff (0.0 to 0.5):
+                    <input type="number" id="surface-input" placeholder="e.g. 0.1" value="0.1" step="0.01">
                 </label>
 
                 <label>Gravity (Planet): 
