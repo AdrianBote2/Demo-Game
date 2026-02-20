@@ -1,27 +1,32 @@
 const ball = document.getElementById('ball');
-const stage = document.getElementById('stage');
 const startBtn = document.getElementById('start-button');
 const ui = document.getElementById('ui');
 const hud = document.getElementById('hud');
+const targetZone = document.getElementById('target-zone');
 const challengeBox = document.getElementById('challenge-box');
 const holdTimerDisp = document.getElementById('hold-timer');
+const objectiveText = document.getElementById('objective-text');
 
 const vDisp = document.getElementById('v-total'), aDisp = document.getElementById('a-total');
+const txDisp = document.getElementById('tilt-x'), tyDisp = document.getElementById('tilt-y');
 const nfDisp = document.getElementById('normal-force');
-const arrowG = document.getElementById('v-gravity'), arrowF = document.getElementById('v-friction');
-const arrowN = document.getElementById('v-net'), arrowRing = document.getElementById('v-normal-ring');
+
+const arrowG = document.getElementById('v-gravity');
+const arrowF = document.getElementById('v-friction');
+const arrowN = document.getElementById('v-net');
 
 let g, mass, mu;
 let px = 0, py = 0, vx = 0, vy = 0, ax = 0, ay = 0;
-let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
+let tiltX = 0, tiltY = 0;
+let calibBeta = null, calibGamma = null;
 let holdStartTime = null, challengeComplete = false;
 
-function drawVectors(fgX, fgY, nFX, nFY, normalForce) {
-    const s = 10; 
-    // Gravity
+function drawVectors(fgX, fgY, fX, fY, nFX, nFY) {
+    const s = 8; // Vector visual scale
     arrowG.setAttribute('x2', 50 + (fgX * s));
     arrowG.setAttribute('y2', 50 + (fgY * s));
-    // Friction (opposes velocity)
+    
+    // Friction points opposite to velocity
     const speed = Math.sqrt(vx*vx + vy*vy);
     if (speed > 0.1) {
         arrowF.setAttribute('x2', 50 - (vx * s * 3));
@@ -29,20 +34,12 @@ function drawVectors(fgX, fgY, nFX, nFY, normalForce) {
     } else {
         arrowF.setAttribute('x2', 50); arrowF.setAttribute('y2', 50);
     }
-    // Net Force
+
     arrowN.setAttribute('x2', 50 + (nFX * s));
     arrowN.setAttribute('y2', 50 + (nFY * s));
-    // Normal Force Ring (Z-axis)
-    const ringScale = (normalForce / (mass * g)) * 15;
-    arrowRing.setAttribute('r', 10 + ringScale);
-    arrowRing.setAttribute('stroke-width', 1 + (ringScale / 5));
 }
 
 function update() {
-    // 1. Visual Tilt
-    stage.style.transform = `rotateX(${-tiltY}deg) rotateY(${tiltX}deg)`;
-
-    // 2. Physics Math
     const radX = (tiltX * Math.PI) / 180;
     const radY = (tiltY * Math.PI) / 180;
     const normalForce = mass * g * Math.cos(Math.sqrt(radX**2 + radY**2));
@@ -51,40 +48,41 @@ function update() {
     const maxFriction = mu * normalForce;
 
     let nFX = 0, nFY = 0;
+
+    // X Axis Physics
     if (Math.abs(fgX) > maxFriction) {
         nFX = fgX - (Math.sign(fgX) * maxFriction);
         ax = nFX / mass;
-    } else { ax = 0; vx *= 0.9; }
+    } else {
+        ax = 0; vx *= 0.92;
+    }
 
+    // Y Axis Physics
     if (Math.abs(fgY) > maxFriction) {
         nFY = fgY - (Math.sign(fgY) * maxFriction);
         ay = nFY / mass;
-    } else { ay = 0; vy *= 0.9; }
+    } else {
+        ay = 0; vy *= 0.92;
+    }
 
     vx += ax; vy += ay;
     px += vx; py += vy;
 
-    // Boundaries (Centered at 1000,1000 on a 2000px stage)
-    const limit = 900; 
-    if (Math.abs(px) > limit) { px = Math.sign(px) * limit; vx = 0; }
-    if (Math.abs(py) > limit) { py = Math.sign(py) * limit; vy = 0; }
+    drawVectors(fgX, fgY, (fgX - nFX), (fgY - nFY), nFX, nFY);
 
-    // 3. Render Ball
-    ball.style.transform = `translate3d(${px - 20}px, ${py - 20}px, 20px)`;
-    
-    // 4. Vector Drawing
-    drawVectors(fgX, fgY, nFX, nFY, normalForce);
+    const limX = window.innerWidth / 2 - 18, limY = window.innerHeight / 2 - 18;
+    if (Math.abs(px) >= limX) { px = Math.sign(px) * limX; vx = 0; }
+    if (Math.abs(py) >= limY) { py = Math.sign(py) * limY; vy = 0; }
 
-    // 5. Challenge
     const speed = Math.sqrt(vx*vx + vy*vy);
-    if (Math.sqrt(px*px + py*py) < 50 && speed < 0.3 && !challengeComplete) {
+    if (Math.sqrt(px*px + py*py) < 40 && speed < 0.5 && !challengeComplete) {
         if (!holdStartTime) holdStartTime = Date.now();
         let elapsed = (Date.now() - holdStartTime) / 1000;
         holdTimerDisp.innerText = elapsed.toFixed(1);
-        if (elapsed >= 3) { challengeComplete = true; document.getElementById('objective-text').innerText = "STABLE"; }
+        if (elapsed >= 3) { challengeComplete = true; objectiveText.innerHTML = "<b>STABLE</b>"; challengeBox.style.color = "#4ade80"; }
     } else if (!challengeComplete) { holdStartTime = null; holdTimerDisp.innerText = "0.0"; }
 
-    // 6. HUD
+    ball.style.transform = `translate(${px}px, ${py}px)`;
     vDisp.innerText = speed.toFixed(2);
     aDisp.innerText = Math.sqrt(ax*ax + ay*ay).toFixed(2);
     nfDisp.innerText = Math.abs(normalForce).toFixed(2);
@@ -108,8 +106,7 @@ startBtn.addEventListener('click', () => {
 
 function init() {
     ui.style.display = 'none';
-    hud.classList.remove('hidden'); challengeBox.classList.remove('hidden'); 
-    document.getElementById('target-zone').classList.remove('hidden');
+    hud.classList.remove('hidden'); challengeBox.classList.remove('hidden'); targetZone.classList.remove('hidden');
     window.addEventListener('deviceorientation', handleOrientation);
     update();
 }
