@@ -3,49 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Lab: Slope Challenge</title>
+    <title>Physics Lab: Multi-Mode</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
 <body>
     <div id="hud" class="hidden">
         <div class="hud-header">
-            <span class="header">TELEMETRY</span>
+            <span class="header">LAB DATA</span>
             <button id="toggle-hud">▼</button>
         </div>
+        
         <div id="hud-content">
-            <div id="game-stats" class="hidden">
-                <div class="stat" style="color:#fbbf24">⏳ Time: <span id="timer">10.0</span>s</div>
-                <div class="stat" style="color:#a855f7">🎯 Score: <span id="score">0</span></div>
+            <div id="game-stats">
+                <div class="stat" style="color:#fbbf24; margin-top:10px;">⏳ Time: <span id="timer">10.0</span>s</div>
+                <div class="stat" style="color:#a855f7">🎯 Goals: <span id="score">0</span></div>
             </div>
             <div id="sandbox-controls" class="hidden">
                 <button id="reset-ball-btn">🔄 Reset Ball</button>
             </div>
             <hr>
-            <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
-            <div class="stat">Fn: <span id="normal-force">0.00</span> N</div>
+            <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
+            <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
+            <hr>
+            <div class="legend" style="color:#ef4444">🔴 Gravity (Fg)</div>
+            <div class="legend" style="color:#3b82f6">🔵 Friction (Ff)</div>
+            <div class="legend" style="color:#4ade80">🟢 Net Force (Fnet)</div>
         </div>
     </div>
 
     <div id="ui">
-        <h1>Slope Lab</h1>
+        <h1>Physics Lab</h1>
         <div class="mode-selection">
             <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
             <button class="mode-btn" id="mode-challenge">🎯 Challenge</button>
         </div>
+
         <p id="mode-description">Free play! Explore inertia, friction, and gravity without limits.</p>
+
         <div class="setup-form">
             <label>Mass (kg): <input type="number" id="mass-input" value="0.5" step="0.1"></label>
-            <label>Friction (mu): <input type="number" id="surface-input" value="0.05" step="0.01"></label>
+            <label>Friction (mu): <input type="number" id="surface-input" value="0.15" step="0.01"></label>
             <label>Gravity: 
                 <select id="gravity-input">
-                    <option value="9.81">Earth (9.81)</option>
-                    <option value="1.62">Moon (1.62)</option>
+                    <option value="9.81">Earth (9.81 m/s²)</option>
+                    <option value="1.62">Moon (1.62 m/s²)</option>
+                    <option value="3.71">Mars (3.71 m/s²)</option>
                 </select>
             </label>
         </div>
-        <button id="start-button">INITIALIZE SESSION</button>
+        <button id="start-button" style="background: #4ade80; color: #064e3b;">INITIALIZE SESSION</button>
     </div>
+
     <script src="index.js"></script>
 </body>
 </html>
