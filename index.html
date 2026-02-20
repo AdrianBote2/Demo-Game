@@ -16,22 +16,25 @@
     </div>
 
     <div id="challenge-box" class="hidden">
-        <h3>Current Objective</h3>
-        <p id="objective-text">Achieve <b>Static Equilibrium</b>: Hold ball in center for 3s.</p>
-        <div id="timer-display">Hold Time: <span id="hold-timer">0.0</span>s</div>
+        <h3>Objective</h3>
+        <p id="objective-text">Hold ball in center for 3s.</p>
+        <div id="timer-display">
+            <span>Hold:</span>
+            <span><span id="hold-timer">0.0</span>s</span>
+        </div>
     </div>
 
     <div id="game-container">
         <div id="target-zone" class="hidden"></div>
 
         <div id="ui">
-            <h1>Kinematics Pro Lab</h1>
+            <h1>Kinematics Lab</h1>
             <div class="setup-form">
                 <label>Mass ($m$ in kg):
                     <input type="number" id="mass-input" value="0.5" step="0.1">
                 </label>
                 <label>Friction Coeff ($\mu$):
-                    <input type="number" id="surface-input" value="0.15" step="0.05">
+                    <input type="number" id="surface-input" value="0.15" step="0.01">
                 </label>
                 <label>Gravity ($g$): 
                     <select id="gravity-input">

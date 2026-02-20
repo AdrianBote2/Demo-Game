@@ -11,28 +11,29 @@ const vDisp = document.getElementById('v-total'), aDisp = document.getElementByI
 const txDisp = document.getElementById('tilt-x'), tyDisp = document.getElementById('tilt-y');
 const nfDisp = document.getElementById('normal-force'), fDisp = document.getElementById('friction-val');
 
-// Physics Vars
+// Physics Logic Constants
 let g, mass, mu;
 let px = 0, py = 0, vx = 0, vy = 0, ax = 0, ay = 0;
 let tiltX = 0, tiltY = 0;
 let calibBeta = null, calibGamma = null;
 
-// Game Vars
+// Challenge State
 let holdStartTime = null;
 let challengeComplete = false;
 
 function update() {
-    // 1. Force Calculations
+    // 1. Angle Calculation
     const radX = (tiltX * Math.PI) / 180;
     const radY = (tiltY * Math.PI) / 180;
     const totalTiltRad = Math.sqrt(radX**2 + radY**2);
     
+    // 2. Realistic Physics Forces (F = m*g*sin(theta))
     const normalForce = mass * g * Math.cos(totalTiltRad);
     const fgX = mass * g * Math.sin(radX);
     const fgY = mass * g * Math.sin(radY);
     const maxFriction = mu * normalForce;
 
-    // 2. Net Force Logic (Newton's 2nd Law)
+    // 3. Acceleration with Static/Kinetic Friction threshold
     if (Math.abs(fgX) > maxFriction) {
         ax = (fgX - (Math.sign(fgX) * maxFriction)) / mass;
     } else {
@@ -45,17 +46,17 @@ function update() {
         ay = 0; vy *= 0.92; if (Math.abs(vy) < 0.05) vy = 0;
     }
 
-    // 3. Movement
+    // 4. Update Physics State
     vx += ax; vy += ay;
     px += vx; py += vy;
 
-    // 4. Boundaries
-    const limX = window.innerWidth / 2 - 20;
-    const limY = window.innerHeight / 2 - 20;
+    // Boundary check
+    const limX = window.innerWidth / 2 - 18;
+    const limY = window.innerHeight / 2 - 18;
     if (Math.abs(px) >= limX) { px = Math.sign(px) * limX; vx = 0; ax = 0; }
     if (Math.abs(py) >= limY) { py = Math.sign(py) * limY; vy = 0; ay = 0; }
 
-    // 5. Challenge Logic: Check Target
+    // 5. Game Logic (Challenge Detection)
     const distance = Math.sqrt(px * px + py * py);
     const currentSpeed = Math.sqrt(vx * vx + vy * vy);
 
@@ -65,15 +66,16 @@ function update() {
         holdTimerDisp.innerText = elapsed.toFixed(1);
         if (elapsed >= 3) {
             challengeComplete = true;
-            objectiveText.innerHTML = "<b>LEVEL COMPLETE</b><br>Equilibrium achieved.";
+            objectiveText.innerHTML = "<b>STABLE</b>";
             challengeBox.style.borderColor = "#4ade80";
+            challengeBox.style.color = "#4ade80";
         }
-    } else {
+    } else if (!challengeComplete) {
         holdStartTime = null;
-        if (!challengeComplete) holdTimerDisp.innerText = "0.0";
+        holdTimerDisp.innerText = "0.0";
     }
 
-    // 6. HUD & Visuals
+    // 6. Final Render
     ball.style.transform = `translate(${px}px, ${py}px)`;
     vDisp.innerText = currentSpeed.toFixed(2);
     aDisp.innerText = Math.sqrt(ax*ax + ay*ay).toFixed(2);
