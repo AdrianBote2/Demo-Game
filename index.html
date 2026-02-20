@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>360° Kinematics Lab</title>
+    <title>3D Kinematics Lab</title>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div id="hud" class="hidden">
         <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
-        <div class="stat">Acceleration: <span id="a-total">0.00</span> m/s²</div>
+        <div class="stat">Accel: <span id="a-total">0.00</span> m/s²</div>
         <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
         <hr>
         <div class="stat" style="color:#ef4444">● Gravity ($F_g$)</div>
         <div class="stat" style="color:#3b82f6">● Friction ($F_f$)</div>
         <div class="stat" style="color:#4ade80">● Net Force ($F_{net}$)</div>
+        <div class="stat" style="color:#22d3ee">○ Normal ($F_n$)</div>
     </div>
 
     <div id="challenge-box" class="hidden">
         <h3>Objective</h3>
-        <p id="objective-text">Hold ball in center for 3s.</p>
+        <p id="objective-text">Achieve equilibrium in center.</p>
         <div id="timer-display">
             <span>Hold:</span>
             <span><span id="hold-timer">0.0</span>s</span>
@@ -27,15 +28,34 @@
     </div>
 
     <div id="game-container">
-        <div id="target-zone" class="hidden"></div>
+        <div id="scene">
+            <div id="stage">
+                <div id="grid"></div>
+                <div id="target-zone" class="hidden"></div>
+                
+                <div id="ball">
+                    <svg id="vector-overlay" viewBox="0 0 100 100">
+                        <defs>
+                            <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#ef4444" /></marker>
+                            <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3b82f6" /></marker>
+                            <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#4ade80" /></marker>
+                        </defs>
+                        <circle id="v-normal-ring" cx="50" cy="50" r="15" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="2,2" />
+                        <line id="v-gravity" x1="50" y1="50" x2="50" y2="50" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)" />
+                        <line id="v-friction" x1="50" y1="50" x2="50" y2="50" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-blue)" />
+                        <line id="v-net" x1="50" y1="50" x2="50" y2="50" stroke="#4ade80" stroke-width="4" marker-end="url(#arrow-green)" />
+                    </svg>
+                </div>
+            </div>
+        </div>
 
         <div id="ui">
-            <h1>Kinematics Pro Lab</h1>
+            <h1>3D Kinematics</h1>
             <div class="setup-form">
                 <label>Mass ($m$ in kg):
                     <input type="number" id="mass-input" value="0.5" step="0.1">
                 </label>
-                <label>Friction Coeff ($\mu$):
+                <label>Friction ($\mu$):
                     <input type="number" id="surface-input" value="0.15" step="0.01">
                 </label>
                 <label>Gravity ($g$): 
@@ -46,20 +66,7 @@
                     </select>
                 </label>
             </div>
-            <button id="start-button">CALIBRATE & START</button>
-        </div>
-
-        <div id="ball">
-            <svg id="vector-overlay" viewBox="0 0 100 100">
-                <defs>
-                    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#ef4444" /></marker>
-                    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3b82f6" /></marker>
-                    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#4ade80" /></marker>
-                </defs>
-                <line id="v-gravity" x1="50" y1="50" x2="50" y2="50" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)" />
-                <line id="v-friction" x1="50" y1="50" x2="50" y2="50" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-blue)" />
-                <line id="v-net" x1="50" y1="50" x2="50" y2="50" stroke="#4ade80" stroke-width="4" marker-end="url(#arrow-green)" />
-            </svg>
+            <button id="start-button">START SESSION</button>
         </div>
     </div>
 
