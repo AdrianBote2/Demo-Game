@@ -1,108 +1,161 @@
-const ball = document.getElementById('ball');
-const stage = document.getElementById('stage');
-const startBtn = document.getElementById('start-button');
-const ui = document.getElementById('ui');
-const hud = document.getElementById('hud');
-const challengeBox = document.getElementById('challenge-box');
-const holdTimerDisp = document.getElementById('hold-timer');
-
-const vDisp = document.getElementById('v-total'), nfDisp = document.getElementById('normal-force');
-const arrowG = document.getElementById('v-gravity'), arrowF = document.getElementById('v-friction');
-const arrowN = document.getElementById('v-net'), arrowRing = document.getElementById('v-normal-ring');
-
-let g, mass, mu;
-let px = 0, py = 0, vx = 0, vy = 0, ax = 0, ay = 0;
+let scene, camera, renderer, ball, arrowG, arrowF, arrowN;
+let px = 0, pz = 0, vx = 0, vz = 0;
 let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
-let holdStartTime = null, challengeComplete = false;
+let mass, mu, g;
 
-function drawVectors(fgX, fgY, nFX, nFY, normalForce) {
-    const s = 10; 
-    arrowG.setAttribute('x2', 50 + (fgX * s));
-    arrowG.setAttribute('y2', 50 + (fgY * s));
-    
-    const speed = Math.sqrt(vx*vx + vy*vy);
-    if (speed > 0.1) {
-        arrowF.setAttribute('x2', 50 - (vx * s * 3));
-        arrowF.setAttribute('y2', 50 - (vy * s * 3));
-    } else {
-        arrowF.setAttribute('x2', 50); arrowF.setAttribute('y2', 50);
-    }
-    
-    arrowN.setAttribute('x2', 50 + (nFX * s));
-    arrowN.setAttribute('y2', 50 + (nFY * s));
+function initThree() {
+    // 1. Scene Setup
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020617);
 
-    const ringScale = (normalForce / (mass * g)) * 15;
-    arrowRing.setAttribute('r', 10 + ringScale);
+    // 2. Helicopter Camera (Look down from corner)
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(15, 20, 15); 
+    camera.lookAt(0, 0, 0);
+
+    // 3. Renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // 4. Lab Grid & Floor
+    const gridHelper = new THREE.GridHelper(40, 40, 0x334155, 0x1e293b);
+    scene.add(gridHelper);
+
+    // 5. The Sphere (True 3D Geometry)
+    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const material = new THREE.MeshPhongMaterial({ 
+        color: 0xef4444, 
+        shininess: 80,
+        specular: 0x444444 
+    });
+    ball = new THREE.Mesh(geometry, material);
+    ball.position.y = 0.5; // Offset by radius to sit on grid
+    ball.castShadow = true;
+    scene.add(ball);
+
+    // 6. Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+    sunLight.position.set(10, 20, 10);
+    sunLight.castShadow = true;
+    scene.add(sunLight);
+
+    // 7. 3D Vector Helpers
+    arrowG = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0xef4444);
+    arrowF = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x3b82f6);
+    arrowN = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x4ade80);
+    scene.add(arrowG, arrowF, arrowN);
+
+    window.addEventListener('deviceorientation', handleOrientation);
+    animate();
 }
 
-function update() {
-    // Stage Tilt (Helicopter View)
-    // 60 is the base X rotation, 15 is the base Z rotation
-    stage.style.transform = `rotateX(${60 - tiltY * 0.5}deg) rotateZ(${15 + tiltX * 0.5}deg)`;
+function handleOrientation(e) {
+    if (calibBeta === null) {
+        calibBeta = e.beta;
+        calibGamma = e.gamma;
+        return;
+    }
+    // Mapping tilt to 3D axes
+    tiltX = e.gamma - calibGamma;
+    tiltY = e.beta - calibBeta;
+}
 
+function animate() {
+    requestAnimationFrame(animate);
+
+    // --- Physics Engine ---
     const radX = (tiltX * Math.PI) / 180;
-    const radY = (tiltY * Math.PI) / 180;
-    const normalForce = mass * g * Math.cos(Math.sqrt(radX**2 + radY**2));
+    const radZ = (tiltY * Math.PI) / 180;
+
+    // Fg = m * g * sin(theta)
     const fgX = mass * g * Math.sin(radX);
-    const fgY = mass * g * Math.sin(radY);
+    const fgZ = mass * g * Math.sin(radZ);
+    const normalForce = mass * g * Math.cos(Math.sqrt(radX**2 + radZ**2));
     const maxFriction = mu * normalForce;
 
-    let nFX = 0, nFY = 0;
+    let nFX = 0, nFZ = 0;
+
+    // Kinetic/Static Friction Threshold
     if (Math.abs(fgX) > maxFriction) {
         nFX = fgX - (Math.sign(fgX) * maxFriction);
-        ax = nFX / mass;
-    } else { ax = 0; vx *= 0.9; }
+        vx += (nFX / mass) * 0.016; // 16ms frame step
+    } else {
+        vx *= 0.95; // Surface damping
+    }
 
-    if (Math.abs(fgY) > maxFriction) {
-        nFY = fgY - (Math.sign(fgY) * maxFriction);
-        ay = nFY / mass;
-    } else { ay = 0; vy *= 0.9; }
+    if (Math.abs(fgZ) > maxFriction) {
+        nFZ = fgZ - (Math.sign(fgZ) * maxFriction);
+        vz += (nFZ / mass) * 0.016;
+    } else {
+        vz *= 0.95;
+    }
 
-    vx += ax; vy += ay;
-    px += vx; py += vy;
+    // Update Position
+    px += vx;
+    pz += vz;
 
-    // Boundary Logic
-    const limit = 900;
-    if (Math.abs(px) > limit) { px = Math.sign(px) * limit; vx = 0; }
-    if (Math.abs(py) > limit) { py = Math.sign(py) * limit; vy = 0; }
+    // Boundaries
+    if (Math.abs(px) > 19.5) { px = Math.sign(px) * 19.5; vx *= -0.5; }
+    if (Math.abs(pz) > 19.5) { pz = Math.sign(pz) * 19.5; vz *= -0.5; }
 
-    // Ball Render in 3D
-    ball.style.transform = `translate3d(${px - 18}px, ${py - 18}px, 18px)`;
+    // --- Update 3D Visuals ---
+    ball.position.set(px, 0.5, pz);
     
-    drawVectors(fgX, fgY, nFX, nFY, normalForce);
+    // Physical rolling rotation
+    ball.rotation.z -= vx;
+    ball.rotation.x += vz;
 
-    const speed = Math.sqrt(vx*vx + vy*vy);
-    if (Math.sqrt(px*px + py*py) < 60 && speed < 0.3 && !challengeComplete) {
-        if (!holdStartTime) holdStartTime = Date.now();
-        let elapsed = (Date.now() - holdStartTime) / 1000;
-        holdTimerDisp.innerText = elapsed.toFixed(1);
-        if (elapsed >= 3) { challengeComplete = true; document.getElementById('objective-text').innerText = "STABLE"; }
-    } else if (!challengeComplete) { holdStartTime = null; holdTimerDisp.innerText = "0.0"; }
+    // Update Arrows
+    updateArrow(arrowG, fgX, fgZ, 0.5); // Gravity
+    updateArrow(arrowF, -vx * 10, -vz * 10, 0.55); // Friction
+    updateArrow(arrowN, nFX, nFZ, 0.6); // Net Force
 
-    vDisp.innerText = speed.toFixed(2);
-    nfDisp.innerText = Math.abs(normalForce).toFixed(2);
+    // HUD Update
+    document.getElementById('v-total').innerText = Math.sqrt(vx*vx + vz*vz).toFixed(2);
+    document.getElementById('normal-force').innerText = normalForce.toFixed(2);
 
-    requestAnimationFrame(update);
+    renderer.render(scene, camera);
 }
 
-function handleOrientation(event) {
-    if (calibBeta === null) { calibBeta = event.beta; calibGamma = event.gamma; return; }
-    tiltX = event.gamma - calibGamma; tiltY = event.beta - calibBeta;
+function updateArrow(arrow, forceX, forceZ, height) {
+    const dir = new THREE.Vector3(forceX, 0, forceZ);
+    const length = dir.length();
+    if (length > 0.05) {
+        arrow.setDirection(dir.normalize());
+        arrow.setLength(length * 2, 0.4, 0.2); // Scaled for visibility
+        arrow.position.set(px, height, pz);
+        arrow.visible = true;
+    } else {
+        arrow.visible = false;
+    }
 }
 
-startBtn.addEventListener('click', () => {
+document.getElementById('start-button').addEventListener('click', () => {
     mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
     mu = parseFloat(document.getElementById('surface-input').value) || 0.15;
     g = parseFloat(document.getElementById('gravity-input').value);
+    
+    document.getElementById('ui').style.display = 'none';
+    document.getElementById('hud').classList.remove('hidden');
+    
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(s => { if(s === 'granted') init(); });
-    } else { init(); }
+        DeviceOrientationEvent.requestPermission().then(res => {
+            if (res === 'granted') initThree();
+        });
+    } else {
+        initThree();
+    }
 });
 
-function init() {
-    ui.style.display = 'none';
-    hud.classList.remove('hidden'); challengeBox.classList.remove('hidden'); 
-    document.getElementById('target-zone').classList.remove('hidden');
-    window.addEventListener('deviceorientation', handleOrientation);
-    update();
-}
+// Handle Window Resize
+window.addEventListener('resize', () => {
+    if (!camera) return;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
