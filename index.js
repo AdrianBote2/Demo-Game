@@ -1,33 +1,19 @@
-let scene, camera, renderer, ball, platformGroup, goalRing;
-let arrowG, arrowF, arrowN;
-let px = 0, pz = 0, vx = 0, vz = 0;
+let scene, camera, renderer, ball, platformGroup;
+let arrowG, arrowF;
+let px = 0, py = 2, pz = 5, vx = 0, vy = 0, vz = 0;
 let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
-let mass = 0.5, mu = 0.15, g = 9.81;
+let mass = 0.5, mu = 0.05, g = 9.81;
+let floorMeshes = [], gameActive = false;
 
-// Engine State
-let currentMode = 'sandbox'; 
-let goalX = 5, goalZ = 5, score = 0, timeLeft = 10.0, stayTimer = 0, gameActive = false;
-
-// UI Selection Logic
-document.getElementById('mode-sandbox').addEventListener('click', () => {
-    currentMode = 'sandbox';
-    document.getElementById('mode-sandbox').classList.add('active');
-    document.getElementById('mode-challenge').classList.remove('active');
-    document.getElementById('mode-description').innerText = "Free play! Explore inertia, friction, and gravity without limits.";
-});
-
-document.getElementById('mode-challenge').addEventListener('click', () => {
-    currentMode = 'challenge';
-    document.getElementById('mode-challenge').classList.add('active');
-    document.getElementById('mode-sandbox').classList.remove('active');
-    document.getElementById('mode-description').innerText = "Challenge: Stay in the ring for 3s to reset the 10s timer!";
-});
-
+/**
+ * Initializes the 3D Environment and Level Geometry
+ */
 function initThree() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
+    
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(25, 30, 25);
+    camera.position.set(30, 35, 30);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -35,31 +21,48 @@ function initThree() {
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
+    // platformGroup holds everything that tilts with the phone
     platformGroup = new THREE.Group();
     scene.add(platformGroup);
 
-    platformGroup.add(new THREE.GridHelper(22, 22, 0x4ade80, 0x1e293b));
-    const base = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 22), new THREE.MeshPhongMaterial({ color: 0x1e293b }));
-    base.position.y = -0.5; base.receiveShadow = true;
-    platformGroup.add(base);
+    const mat = new THREE.MeshPhongMaterial({ color: 0x1e293b });
 
-    goalRing = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.1, 16, 100), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
-    goalRing.rotation.x = Math.PI / 2; goalRing.position.y = 0.05;
-    platformGroup.add(goalRing);
-    goalRing.visible = (currentMode === 'challenge');
-    spawnGoal();
+    // --- LEVEL ARCHITECTURE ---
+    // Lower Level: Starting Quadrants
+    createBox(10, 1, 10, -5, -0.5, 5, mat); // Quadrant 3
+    createBox(10, 1, 10, 5, -0.5, 5, mat);  // Quadrant 4
 
-    ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 80 }));
-    ball.position.set(0, 0.5, 0); ball.castShadow = true;
-    platformGroup.add(ball);
+    // Upper Level: Elevated Quadrants
+    createBox(10, 1, 10, -5, 4.5, -5, mat); // Quadrant 2
+    createBox(10, 1, 10, 5, 4.5, -5, mat);  // Quadrant 1
 
-    arrowG = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0xef4444);
+    // The Bridge: Narrow connector between Q1 and Q2 (No Guard Rails)
+    createBox(4, 0.5, 10, 0, 4.75, -5, new THREE.MeshPhongMaterial({color: 0x334155}));
+
+    // The Ramp: Angled slope connecting Lower Q4 to Upper Q1
+    const rampGeo = new THREE.BoxGeometry(10, 1, 14.5);
+    const ramp = new THREE.Mesh(rampGeo, mat);
+    ramp.position.set(5, 2, 0);
+    // Trigonometry to set the specific angle of the slope
+    ramp.rotation.x = -Math.atan(5/13); 
+    platformGroup.add(ramp);
+    floorMeshes.push(ramp);
+
+    // The Ball
+    ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 100 }));
+    ball.castShadow = true;
+    scene.add(ball); // Ball is in world-space, not platform-space
+
+    // Physics Visualizers (Vectors)
+    arrowG = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(), 0, 0xef4444);
     arrowF = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x3b82f6);
-    arrowN = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x4ade80);
-    scene.add(arrowG, arrowF, arrowN, new THREE.AmbientLight(0xffffff, 0.5));
-    
+    scene.add(arrowG, arrowF);
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(20, 40, 20); light.castShadow = true;
+    light.position.set(10, 50, 10);
+    light.castShadow = true;
     scene.add(light);
 
     window.addEventListener('deviceorientation', handleOrientation);
@@ -67,92 +70,106 @@ function initThree() {
     animate();
 }
 
-function spawnGoal() {
-    goalX = (Math.random() - 0.5) * 16;
-    goalZ = (Math.random() - 0.5) * 16;
-    goalRing.position.set(goalX, 0.05, goalZ);
+/**
+ * Helper to create floor segments and add them to collision array
+ */
+function createBox(w, h, d, x, y, z, material) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+    mesh.position.set(x, y, z);
+    mesh.receiveShadow = true;
+    platformGroup.add(mesh);
+    floorMeshes.push(mesh);
 }
 
-function handleOrientation(e) {
-    if (calibBeta === null) { calibBeta = e.beta; calibGamma = e.gamma; return; }
-    tiltX = e.gamma - calibGamma; tiltY = e.beta - calibBeta;
-}
-
+/**
+ * Main Physics and Animation Loop
+ */
 function animate() {
     if (!gameActive) return;
     requestAnimationFrame(animate);
 
-    const radX = THREE.MathUtils.degToRad(Math.max(-25, Math.min(25, tiltX)));
-    const radZ = THREE.MathUtils.degToRad(Math.max(-25, Math.min(25, tiltY)));
+    // 1. Calculate Platform Tilt from Device Input
+    const radX = THREE.MathUtils.degToRad(tiltX * 0.6);
+    const radZ = THREE.MathUtils.degToRad(tiltY * 0.6);
     platformGroup.rotation.z = -radX;
     platformGroup.rotation.x = radZ;
 
-    const fgX = mass * g * Math.sin(radX), fgZ = mass * g * Math.sin(radZ);
-    const normalForce = mass * g * Math.cos(Math.sqrt(radX**2 + radZ**2));
-    const maxFriction = mu * normalForce;
+    // 2. Raycast to detect surface relative to platform rotation
+    const rayOrigin = new THREE.Vector3(px, py, pz);
+    const rayDirection = new THREE.Vector3(0, -1, 0);
+    const raycaster = new THREE.Raycaster(rayOrigin, rayDirection);
+    const intersects = raycaster.intersectObjects(floorMeshes);
 
-    let nFX = (Math.abs(fgX) > maxFriction) ? fgX - (Math.sign(fgX) * maxFriction) : 0;
-    let nFZ = (Math.abs(fgZ) > maxFriction) ? fgZ - (Math.sign(fgZ) * maxFriction) : 0;
+    let onSurface = false;
+    if (intersects.length > 0 && intersects[0].distance <= 0.6) {
+        onSurface = true;
+        // Snap ball to surface height and cancel vertical velocity
+        py = intersects[0].point.y + 0.5; 
+        vy = 0;
 
-    vx = (nFX === 0) ? vx * 0.92 : vx + (nFX / mass) * 0.016;
-    vz = (nFZ === 0) ? vz * 0.92 : vz + (nFZ / mass) * 0.016;
-    px += vx; pz += vz;
+        // Apply Acceleration based on Tilt (F = ma)
+        vx += (radX * g) * 0.02;
+        vz -= (radZ * g) * 0.02;
 
-    if (Math.abs(px) > 10.5) { px = Math.sign(px) * 10.5; vx *= -0.5; }
-    if (Math.abs(pz) > 10.5) { pz = Math.sign(pz) * 10.5; vz *= -0.5; }
-
-    ball.position.set(px, 0.5, pz);
-    ball.rotation.z -= vx; ball.rotation.x += vz;
-
-    // Mode Specific Updates
-    if (currentMode === 'challenge') {
-        timeLeft -= 0.016;
-        const dist = Math.sqrt((px - goalX)**2 + (pz - goalZ)**2);
-        if (dist < 1.2 && Math.abs(vx) < 0.05 && Math.abs(vz) < 0.05) {
-            stayTimer += 0.016;
-            goalRing.material.color.set(0x4ade80);
-            if (stayTimer >= 3) { score++; timeLeft = 10.0; stayTimer = 0; spawnGoal(); }
-        } else { stayTimer = 0; goalRing.material.color.set(0xfbbf24); }
-
-        if (timeLeft <= 0) { gameActive = false; alert("Challenge Finished! Score: " + score); location.reload(); }
-        document.getElementById('timer').innerText = Math.max(0, timeLeft).toFixed(1);
-        document.getElementById('score').innerText = score;
+        // Apply Rolling Friction (Damping)
+        vx *= (1 - mu);
+        vz *= (1 - mu);
+    } else {
+        // --- FREE FALL PHYSICS ---
+        vy -= (g * 0.016); // Apply constant gravitational acceleration
+        py += vy;
     }
 
-    const wPos = new THREE.Vector3(); ball.getWorldPosition(wPos);
-    updateArrow(arrowG, fgX, fgZ, wPos, 0.5);
-    updateArrow(arrowF, -vx * 10, -vz * 10, wPos, 0.6);
-    updateArrow(arrowN, nFX, nFZ, wPos, 0.7);
+    px += vx;
+    pz += vz;
 
+    // 3. Level Boundaries (Reset if ball falls into the void)
+    if (py < -20) { resetBall(); }
+
+    ball.position.set(px, py, pz);
+
+    // 4. Update Telemetry UI
     document.getElementById('v-total').innerText = Math.sqrt(vx*vx + vz*vz).toFixed(2);
-    document.getElementById('normal-force').innerText = normalForce.toFixed(2);
+    document.getElementById('normal-force').innerText = onSurface ? (mass * g).toFixed(2) : "0.00";
+    
+    // 5. Update Force Vectors
+    arrowG.position.set(px, py + 0.6, pz);
+    arrowG.setLength(onSurface ? 1 : 2); // Gravity arrow "stretches" in free-fall
+    
     renderer.render(scene, camera);
 }
 
-function updateArrow(a, fx, fz, p, h) {
-    const d = new THREE.Vector3(fx, 0, fz);
-    if (d.length() > 0.05) {
-        a.setDirection(d.normalize()); a.setLength(d.length() * 1.5, 0.3, 0.15);
-        a.position.copy(p); a.position.y += h; a.visible = true;
-    } else { a.visible = false; }
+function handleOrientation(e) {
+    if (calibBeta === null) { calibBeta = e.beta; calibGamma = e.gamma; return; }
+    tiltX = (e.gamma - calibGamma);
+    tiltY = (e.beta - calibBeta);
 }
 
-// Control Event Listeners
+function resetBall() {
+    px = 0; py = 2; pz = 5; 
+    vx = 0; vy = 0; vz = 0;
+}
+
+/**
+ * UI Event Listeners
+ */
 document.getElementById('start-button').addEventListener('click', () => {
+    // Parse user lab settings
     mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
-    mu = parseFloat(document.getElementById('surface-input').value) || 0.15;
+    mu = parseFloat(document.getElementById('surface-input').value) || 0.05;
     g = parseFloat(document.getElementById('gravity-input').value) || 9.81;
+
     document.getElementById('ui').style.display = 'none';
     document.getElementById('hud').classList.remove('hidden');
     
-    if(currentMode === 'sandbox') {
-        document.getElementById('game-stats').classList.add('hidden');
-        document.getElementById('sandbox-controls').classList.remove('hidden');
-    }
-
+    // Request permission for iOS Motion sensors
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(res => { if (res === 'granted') initThree(); });
-    } else { initThree(); }
+        DeviceOrientationEvent.requestPermission().then(res => { 
+            if (res === 'granted') initThree(); 
+        });
+    } else {
+        initThree();
+    }
 });
 
 document.getElementById('toggle-hud').addEventListener('click', () => {
@@ -161,6 +178,12 @@ document.getElementById('toggle-hud').addEventListener('click', () => {
     document.getElementById('toggle-hud').innerText = hud.classList.contains('collapsed') ? '▶' : '▼';
 });
 
-document.getElementById('reset-ball-btn').addEventListener('click', () => {
-    px = 0; pz = 0; vx = 0; vz = 0;
+document.getElementById('reset-ball-btn').addEventListener('click', resetBall);
+
+// Handle window resizing
+window.addEventListener('resize', () => {
+    if (!camera || !renderer) return;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 });
