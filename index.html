@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Lab: Multi-Mode</title>
+    <title>Physics Lab: 3-Mode Edition</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
@@ -15,13 +15,20 @@
         </div>
         
         <div id="hud-content">
-            <div id="game-stats">
+            <div id="game-stats" class="hidden">
                 <div class="stat" style="color:#fbbf24; margin-top:10px;">⏳ Time: <span id="timer">10.0</span>s</div>
                 <div class="stat" style="color:#a855f7">🎯 Goals: <span id="score">0</span></div>
             </div>
+
+            <div id="racing-stats" class="hidden">
+                <div class="stat" style="color:#4ade80; margin-top:10px;">⏱ Race: <span id="race-timer">0.0</span>s</div>
+                <div class="stat" style="color:#22d3ee">🏆 Best: <span id="best-time">--</span>s</div>
+            </div>
+
             <div id="sandbox-controls" class="hidden">
                 <button id="reset-ball-btn">🔄 Reset Ball</button>
             </div>
+
             <hr>
             <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
             <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
@@ -36,7 +43,8 @@
         <h1>Physics Lab</h1>
         <div class="mode-selection">
             <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
-            <button class="mode-btn" id="mode-challenge">🎯 Challenge</button>
+            <button class="mode-btn" id="mode-challenge">🎯 Target</button>
+            <button class="mode-btn" id="mode-racing">🏎 Racing</button>
         </div>
 
         <p id="mode-description">Free play! Explore inertia, friction, and gravity without limits.</p>

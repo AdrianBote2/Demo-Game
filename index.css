@@ -5,7 +5,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden; 
     color: white;
-    touch-action: none; /* Prevents browser pull-to-refresh on mobile */
+    touch-action: none; /* Prevents browser pull-to-refresh and accidental zooming */
 }
 
 canvas { 
@@ -37,13 +37,12 @@ canvas {
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    pointer-events: auto; 
 }
 
 #hud-content {
     overflow: hidden;
     transition: max-height 0.3s ease-in-out;
-    max-height: 500px; /* Big enough to fit all stats */
+    max-height: 500px;
 }
 
 #hud.collapsed #hud-content {
@@ -52,7 +51,7 @@ canvas {
 
 #hud.collapsed {
     padding-bottom: 10px;
-    width: 130px; /* Slims down when closed */
+    width: 130px; 
 }
 
 #toggle-hud {
@@ -65,31 +64,11 @@ canvas {
     font-size: 0.8rem;
 }
 
-/* HUD Typography & Elements */
+/* HUD Typography */
 #hud hr { border: 0; border-top: 1px solid #334155; margin: 10px 0; }
 .stat { font-size: 0.9rem; margin-bottom: 5px; }
 .header { font-size: 0.7rem; color: #64748b; letter-spacing: 1px; font-weight: bold; }
 .legend { font-size: 0.75rem; margin-top: 4px; font-weight: 500; }
-
-/* Sandbox Specific Reset Button */
-#reset-ball-btn {
-    width: 100%;
-    padding: 8px;
-    background: #334155;
-    color: #22d3ee;
-    border: 1px solid #475569;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    pointer-events: auto;
-    transition: background 0.2s;
-}
-
-#reset-ball-btn:hover {
-    background: #475569;
-}
 
 /* --- Start Menu / Mode Selection --- */
 #ui {
@@ -118,10 +97,10 @@ p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.4; m
 
 .mode-btn { 
     flex: 1; 
-    padding: 10px !important; 
-    font-size: 0.75rem !important; 
-    background: #334155 !important; 
-    color: #94a3b8 !important; 
+    padding: 10px; 
+    font-size: 0.75rem; 
+    background: #334155; 
+    color: #94a3b8; 
     border: none; 
     border-radius: 6px; 
     cursor: pointer; 
@@ -129,12 +108,12 @@ p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.4; m
 }
 
 .mode-btn.active { 
-    background: #22d3ee !important; 
-    color: #0f172a !important; 
+    background: #22d3ee; 
+    color: #0f172a; 
     font-weight: bold; 
 }
 
-/* Inputs & Setup Form */
+/* Setup Form Inputs */
 .setup-form label { 
     display: block; 
     margin-bottom: 15px; 
@@ -154,7 +133,7 @@ input, select {
     box-sizing: border-box;
 }
 
-/* Main Initialize Button */
+/* Primary Action Button */
 #start-button { 
     width: 100%; 
     padding: 14px; 
@@ -170,6 +149,21 @@ input, select {
 #start-button:hover { 
     filter: brightness(1.1);
     transform: translateY(-1px);
+}
+
+/* Mode-Specific Reset Button */
+#reset-ball-btn {
+    width: 100%;
+    padding: 8px;
+    background: #334155;
+    color: #22d3ee;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: background 0.2s;
 }
 
 /* Utility */
