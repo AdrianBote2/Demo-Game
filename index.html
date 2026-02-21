@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Lab: 3-Mode Edition</title>
+    <title>Physics Lab: Sandbox Edition</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
@@ -28,13 +28,18 @@
             </div>
 
             <div id="sandbox-controls" class="hidden">
-                <div class="stat" style="color:#22d3ee; margin-top:10px;">🎯 Goal: <span id="target-display">2.50</span> m/s</div>
-                <button id="reset-ball-btn">🔄 Reset Position</button>
+                <div class="stat" style="color:#22d3ee; margin-top:10px;">🎯 Target: 2.50 m/s</div>
+                <button id="reset-ball-btn">🔄 Reset Ball</button>
             </div>
 
             <hr>
-            <div class="stat">Speed: <span id="v-total">0.00</span> m/s</div>
-            <div class="stat">Normal Force: <span id="normal-force">0.00</span> N</div>
+            <div class="header">PHYSICS TRACERS</div>
+            
+            <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
+            <div class="stat">Accel: <span id="a-total">0.00</span> m/s²</div>
+            <div class="stat">Normal (Fn): <span id="normal-force">0.00</span> N</div>
+            <div class="stat">Friction (Ff): <span id="friction-force">0.00</span> N</div>
+            
             <hr>
             <div class="legend" style="color:#ef4444">🔴 Gravity Vector (Fg)</div>
             <div class="legend" style="color:#3b82f6">🔵 Friction Vector (Ff)</div>
@@ -51,7 +56,7 @@
             <button class="mode-btn" id="mode-racing">🏎 Racing</button>
         </div>
 
-        <p id="mode-description">Free play! Explore inertia, friction, and gravity without limits.</p>
+        <p id="mode-description">Endless Road: Match 2.50 m/s! (Wrap-around enabled)</p>
 
         <div class="setup-form">
             <label>Object Mass (kg): 
