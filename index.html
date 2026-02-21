@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Lab: Cross-Platform</title>
+    <title>Reactive Physics Lab</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
@@ -11,10 +11,9 @@
 
     <div id="device-selector">
         <div class="selector-box">
-            <h2 style="color: #22d3ee; margin-top: 0;">LAB ACCESS</h2>
-            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px;">Choose your control interface:</p>
-            <button id="choose-mobile">📱 Mobile (Tilt Sensor)</button>
-            <button id="choose-pc">💻 PC (Arrows / WASD)</button>
+            <h2 style="color: #22d3ee; margin-top: 0; letter-spacing: 2px;">LAB TERMINAL</h2>
+            <button id="choose-mobile">📱 Mobile (Tilt Control)</button>
+            <button id="choose-pc">💻 PC (WASD / Arrows)</button>
         </div>
     </div>
 
@@ -27,63 +26,50 @@
         <div id="hud-content">
             <div id="game-stats" class="hidden">
                 <div class="stat" style="color:#fbbf24">⏳ Time: <span id="timer">10.0</span>s</div>
-                <div class="stat" style="color:#a855f7">🎯 Goals: <span id="score">0</span></div>
+                <div class="stat" style="color:#a855f7">🎯 Score: <span id="score">0</span></div>
             </div>
-
             <div id="racing-stats" class="hidden">
                 <div class="stat" style="color:#4ade80">⏱ Race: <span id="race-timer">0.0</span>s</div>
-                <div class="stat" style="color:#f472b6">🏁 Laps: <span id="lap-count">0</span> / 3</div>
-                <div class="stat" style="color:#22d3ee">🏆 Best: <span id="best-time">--</span>s</div>
+                <div class="stat" style="color:#f472b6">🏁 Laps: <span id="lap-count">0</span>/3</div>
             </div>
 
+            <hr>
+            <div class="header" style="color: #22d3ee;">LIVE PHYSICS INPUTS</div>
+            <div class="input-row">
+                <label>Friction (μ):</label>
+                <input type="number" id="live-mu" value="0.15" step="0.01" min="0">
+            </div>
+            <div class="input-row">
+                <label>Mass (kg):</label>
+                <input type="number" id="live-mass" value="0.5" step="0.1" min="0.1">
+            </div>
+            <div class="input-row">
+                <label>Gravity (g):</label>
+                <input type="number" id="live-g" value="9.81" step="0.01">
+            </div>
+
+            <hr>
+            <div class="header">FORCE VECTORS</div>
+            <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
+            <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
+            <div class="stat">Fn: <span id="normal-force">0.00</span> N</div>
+            <div class="stat">Ff: <span id="friction-force">0.00</span> N</div>
+            
             <div id="sandbox-controls" class="hidden">
-                <div class="stat" style="color:#22d3ee">🎯 Target: 2.50 m/s</div>
                 <button id="reset-ball-btn">🔄 Reset Position</button>
             </div>
-
-            <hr>
-            <div class="header">PHYSICS TRACERS</div>
-            <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
-            <div class="stat">Accel: <span id="a-total">0.00</span> m/s²</div>
-            <div class="stat">Normal (Fn): <span id="normal-force">0.00</span> N</div>
-            <div class="stat">Friction (Ff): <span id="friction-force">0.00</span> N</div>
-            
-            <hr>
-            <div class="legend" style="color:#ef4444; font-size: 0.7rem;">🔴 Gravity (Fg)</div>
-            <div class="legend" style="color:#3b82f6; font-size: 0.7rem;">🔵 Friction (Ff)</div>
-            <div class="legend" style="color:#4ade80; font-size: 0.7rem;">🟢 Net Force (Fnet)</div>
         </div>
     </div>
 
     <div id="ui">
         <h1>Physics Lab</h1>
-        
         <div class="mode-selection">
             <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
             <button class="mode-btn" id="mode-challenge">🎯 Target</button>
             <button class="mode-btn" id="mode-racing">🏎 Racing</button>
         </div>
-
-        <p id="mode-description">Endless Road: Match 2.50 m/s! (Wrap-around enabled)</p>
-
-        <div class="setup-form">
-            <label>Mass (kg): 
-                <input type="number" id="mass-input" value="0.5" step="0.1">
-            </label>
-            <label>Friction (μ): 
-                <input type="number" id="surface-input" value="0.15" step="0.01">
-            </label>
-            <label>Gravity: 
-                <select id="gravity-input">
-                    <option value="9.81">Earth (9.81 m/s²)</option>
-                    <option value="1.62">Moon (1.62 m/s²)</option>
-                    <option value="3.71">Mars (3.71 m/s²)</option>
-                    <option value="24.79">Jupiter (24.79 m/s²)</option>
-                </select>
-            </label>
-        </div>
-
-        <button id="start-button" style="background: #4ade80; color: #064e3b;">INITIALIZE SESSION</button>
+        <p id="mode-description">Endless Road: Match 2.50 m/s!</p>
+        <button id="start-button">START EXPERIMENT</button>
     </div>
 
     <script src="index.js"></script>
