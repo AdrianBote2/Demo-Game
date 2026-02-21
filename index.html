@@ -3,46 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Lab Master</title>
+    <title>Reactive Physics Lab</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
     <div id="device-selector">
         <div class="selector-box">
-            <h2 style="color: #22d3ee; margin-top: 0;">SYSTEM BOOT</h2>
-            <button id="choose-mobile">📱 Mobile (Gyroscope)</button>
-            <button id="choose-pc">💻 PC (WASD/Arrows)</button>
+            <h2 style="color: #22d3ee; margin-top: 0; letter-spacing: 2px;">LAB TERMINAL</h2>
+            <button id="choose-mobile">📱 Mobile (Tilt Control)</button>
+            <button id="choose-pc">💻 PC (WASD / Arrows)</button>
         </div>
     </div>
 
-    <div id="hud-left" class="hud hidden">
-        <div class="hud-header">LAB CONTROLS</div>
-        <div class="input-row"><label>μ (Friction):</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
-        <div class="input-row"><label>m (Mass kg):</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
-        <div class="input-row"><label>g (Gravity):</label><input type="number" id="live-g" value="9.81" step="0.1"></div>
-        <button id="reset-ball-btn">🔄 RESET POSITION</button>
-    </div>
-
-    <div id="hud-right" class="hud hidden">
-        <div class="hud-header">ANALYTICS OVERLAY</div>
-        <div class="graph-container">
-            <canvas id="physicsChart"></canvas>
+    <div id="hud" class="hidden">
+        <div class="hud-header">
+            <span class="header">SYSTEM TELEMETRY</span>
+            <button id="toggle-hud">▼</button>
         </div>
-        <div class="telemetry-grid">
+        
+        <div id="hud-content">
+            <div id="game-stats" class="hidden">
+                <div class="stat" style="color:#fbbf24">⏳ Time: <span id="timer">10.0</span>s</div>
+                <div class="stat" style="color:#a855f7">🎯 Score: <span id="score">0</span></div>
+            </div>
+            <div id="racing-stats" class="hidden">
+                <div class="stat" style="color:#4ade80">⏱ Race: <span id="race-timer">0.0</span>s</div>
+                <div class="stat" style="color:#f472b6">🏁 Laps: <span id="lap-count">0</span>/3</div>
+            </div>
+
+            <hr>
+            <div class="header" style="color: #22d3ee;">LIVE PHYSICS INPUTS</div>
+            <div class="input-row">
+                <label>Friction (μ):</label>
+                <input type="number" id="live-mu" value="0.15" step="0.01" min="0">
+            </div>
+            <div class="input-row">
+                <label>Mass (kg):</label>
+                <input type="number" id="live-mass" value="0.5" step="0.1" min="0.1">
+            </div>
+            <div class="input-row">
+                <label>Gravity (g):</label>
+                <input type="number" id="live-g" value="9.81" step="0.01">
+            </div>
+
+            <hr>
+            <div class="header">FORCE VECTORS</div>
             <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
             <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
-            <div class="stat">θX: <span id="rot-x">0</span>°</div>
-            <div class="stat">θZ: <span id="rot-z">0</span>°</div>
+            <div class="stat">Fn: <span id="normal-force">0.00</span> N</div>
+            <div class="stat">Ff: <span id="friction-force">0.00</span> N</div>
+            
+            <div id="sandbox-controls" class="hidden">
+                <button id="reset-ball-btn">🔄 Reset Position</button>
+            </div>
         </div>
     </div>
 
     <div id="ui">
-        <h1>PHYSICS LAB</h1>
-        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">Precision Simulation Engine</p>
-        <button id="start-button">INITIALIZE SIMULATION</button>
+        <h1>Physics Lab</h1>
+        <div class="mode-selection">
+            <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
+            <button class="mode-btn" id="mode-challenge">🎯 Target</button>
+            <button class="mode-btn" id="mode-racing">🏎 Racing</button>
+        </div>
+        <p id="mode-description">Endless Road: Match 2.50 m/s!</p>
+        <button id="start-button">START EXPERIMENT</button>
     </div>
 
     <script src="index.js"></script>
