@@ -284,8 +284,8 @@ input[type="number"]:focus {
 /* --- RESPONSIVE MOBILE OVERRIDES --- */
 @media (max-width: 768px) {
     #hud-right { 
-        width: 130px; 
-        padding: 12px;
+        width: 110px; 
+        padding: 8px;
         top: 10px;
         right: 10px;
     }
@@ -301,7 +301,7 @@ input[type="number"]:focus {
 
     .telemetry-grid .stat {
         font-size: 0.7rem;
-        margin: 2px 0;
+        margin: 1px 0;
     }
 
     /* Lab controls on mobile */
