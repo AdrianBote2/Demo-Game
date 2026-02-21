@@ -1,5 +1,5 @@
 let scene, camera, renderer, ball, platformGroup, goalRing, finishLine, checkLine, pillar;
-let arrowG, arrowF;
+let arrowG, arrowF, arrowN;
 let px = 0, pz = 0, vx = 0, vz = 0;
 let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
 let mass = 0.5, mu = 0.15, g = 9.81;
@@ -11,20 +11,20 @@ let score = 0, timeLeft = 10.0, stayTimer = 0;
 let raceTime = 0, bestTime = Infinity;
 let goalX = 5, goalZ = 5;
 
-// Mode UI Selection Logic
-const modeBtns = ['sandbox', 'challenge', 'racing'];
-modeBtns.forEach(m => {
-    document.getElementById(`mode-${m}`).addEventListener('click', () => {
-        currentMode = m;
-        modeBtns.forEach(b => document.getElementById(`mode-${b}`).classList.remove('active'));
-        document.getElementById(`mode-${m}`).classList.add('active');
+// UI Selection Logic
+const modeButtons = ['sandbox', 'challenge', 'racing'];
+modeButtons.forEach(mode => {
+    document.getElementById(`mode-${mode}`).addEventListener('click', () => {
+        currentMode = mode;
+        modeButtons.forEach(m => document.getElementById(`mode-${m}`).classList.remove('active'));
+        document.getElementById(`mode-${mode}`).classList.add('active');
         
-        const desc = { 
-            sandbox: "Free play! Explore inertia, friction, and gravity.", 
-            challenge: "Target: Stay in the ring for 3s to reset the 10s timer!", 
-            racing: "Laps: Pass Red Gate, then Green Gate (3 Laps total)" 
+        const descriptions = {
+            sandbox: "Free play! Explore inertia, friction, and gravity.",
+            challenge: "Target: Stay in the ring for 3s to reset the 10s timer!",
+            racing: "Laps: Pass the Red Checkpoint, then the Green Finish! (3 Laps)"
         };
-        document.getElementById('mode-description').innerText = desc[m];
+        document.getElementById('mode-description').innerText = descriptions[mode];
     });
 });
 
@@ -43,35 +43,35 @@ function initThree() {
     platformGroup = new THREE.Group();
     scene.add(platformGroup);
 
-    // Platform Base
+    // Platform Visuals
     const base = new THREE.Mesh(new THREE.BoxGeometry(22, 1, 22), new THREE.MeshPhongMaterial({ color: 0x1e293b }));
     base.position.y = -0.5; base.receiveShadow = true;
     platformGroup.add(base);
     platformGroup.add(new THREE.GridHelper(22, 22, 0x4ade80, 0x1e293b));
 
-    // Racing Objects: Radial Gates (pointing center to edge)
+    // CENTER PILLAR (Racing)
     pillar = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 4, 32), new THREE.MeshPhongMaterial({ color: 0x334155 }));
     pillar.position.y = 2; pillar.castShadow = true;
     platformGroup.add(pillar);
 
-    // Finish Line (Green Gate at South)
+    // RADIAL GATES (Rotated 90 degrees)
+    // Geometry is now (0.8, 8) to make them point from center to edge
     finishLine = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 8), new THREE.MeshBasicMaterial({ color: 0x4ade80 }));
     finishLine.rotation.x = -Math.PI / 2;
-    finishLine.position.set(0, 0.02, 6.5); 
+    finishLine.position.set(0, 0.02, 6.5); // South Gate
     platformGroup.add(finishLine);
 
-    // Checkpoint Line (Red Gate at North)
     checkLine = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
     checkLine.rotation.x = -Math.PI / 2;
-    checkLine.position.set(0, 0.02, -6.5);
+    checkLine.position.set(0, 0.02, -6.5); // North Gate
     platformGroup.add(checkLine);
 
-    // Challenge Mode Object
+    // Goal Ring (Challenge)
     goalRing = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.1, 16, 100), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
     goalRing.rotation.x = Math.PI / 2; goalRing.position.y = 0.05;
     platformGroup.add(goalRing);
 
-    // Ball (Child of group for perfect tilt alignment)
+    // Ball
     ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 80 }));
     ball.castShadow = true;
     platformGroup.add(ball);
@@ -79,7 +79,8 @@ function initThree() {
     // Telemetry Arrows
     arrowG = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0xef4444);
     arrowF = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x3b82f6);
-    scene.add(arrowG, arrowF, new THREE.AmbientLight(0xffffff, 0.5));
+    arrowN = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, 0x4ade80);
+    scene.add(arrowG, arrowF, arrowN, new THREE.AmbientLight(0xffffff, 0.5));
     
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(20, 40, 20); light.castShadow = true;
@@ -92,12 +93,10 @@ function initThree() {
 }
 
 function resetGame() {
-    // Racing starts ball at a side position, others at center
     px = (currentMode === 'racing') ? 6 : 0; 
-    pz = 0; vx = 0; vz = 0;
-    laps = 0; hasCheckpoint = false; raceTime = 0; stayTimer = 0; score = 0; timeLeft = 10.0;
+    pz = 0;
+    vx = 0; vz = 0; laps = 0; hasCheckpoint = false; raceTime = 0; stayTimer = 0; score = 0; timeLeft = 10.0;
     
-    // Toggle Visibility
     pillar.visible = finishLine.visible = checkLine.visible = (currentMode === 'racing');
     goalRing.visible = (currentMode === 'challenge');
     checkLine.material.color.set(0xef4444);
@@ -121,18 +120,16 @@ function animate() {
     if (!gameActive) return;
     requestAnimationFrame(animate);
 
-    // Orientation to Rotation
     const radX = THREE.MathUtils.degToRad(Math.max(-25, Math.min(25, tiltX)));
     const radZ = THREE.MathUtils.degToRad(Math.max(-25, Math.min(25, tiltY)));
     platformGroup.rotation.z = -radX;
     platformGroup.rotation.x = radZ;
 
-    // Physics Engine (Local Coordinates)
+    // Physics
     const fgX = mass * g * Math.sin(radX), fgZ = mass * g * Math.sin(radZ);
     const normalForce = mass * g * Math.cos(Math.sqrt(radX**2 + radZ**2));
     const maxFriction = mu * normalForce;
 
-    // Apply Friction vs Gravity
     let nFX = (Math.abs(fgX) > maxFriction) ? fgX - (Math.sign(fgX) * maxFriction) : 0;
     let nFZ = (Math.abs(fgZ) > maxFriction) ? fgZ - (Math.sign(fgZ) * maxFriction) : 0;
 
@@ -140,57 +137,64 @@ function animate() {
     vz = (nFZ === 0) ? vz * 0.92 : vz + (nFZ / mass) * 0.016;
     px += vx; pz += vz;
 
-    // Wall Boundaries
+    // Boundary & Pillar Collision
     if (Math.abs(px) > 10.5) { px = Math.sign(px) * 10.5; vx *= -0.5; }
     if (Math.abs(pz) > 10.5) { pz = Math.sign(pz) * 10.5; vz *= -0.5; }
 
-    // Racing: Pillar Collision & Lap Logic
     if (currentMode === 'racing') {
-        const d = Math.sqrt(px*px + pz*pz);
-        if (d < 3.5) { 
-            const a = Math.atan2(pz, px); 
-            px = Math.cos(a) * 3.5; pz = Math.sin(a) * 3.5;
+        const dist = Math.sqrt(px*px + pz*pz);
+        if (dist < 3.5) {
+            const angle = Math.atan2(pz, px);
+            px = Math.cos(angle) * 3.5; pz = Math.sin(angle) * 3.5;
             vx *= -0.3; vz *= -0.3;
         }
-        
+
         raceTime += 0.016;
         document.getElementById('race-timer').innerText = raceTime.toFixed(1);
-        
-        // CHECKPOINT GATE (Z near -6.5)
-        if (pz < -5.5 && pz > -7.5 && Math.abs(px) < 0.6 && !hasCheckpoint) {
-            hasCheckpoint = true; 
+
+        // RADIAL GATE CROSSING LOGIC
+        // Top Gate (North)
+        if (pz < -5.5 && pz > -7.5 && Math.abs(px) < 0.5 && !hasCheckpoint) {
+            hasCheckpoint = true;
             checkLine.material.color.set(0x4ade80);
         }
-        // FINISH GATE (Z near +6.5)
-        if (pz > 5.5 && pz < 7.5 && Math.abs(px) < 0.6 && hasCheckpoint) {
+        // Bottom Gate (South)
+        if (pz > 5.5 && pz < 7.5 && Math.abs(px) < 0.5 && hasCheckpoint) {
             laps++;
             hasCheckpoint = false;
             checkLine.material.color.set(0xef4444);
             document.getElementById('lap-count').innerText = laps;
-            if (laps >= 3) { alert("Race Complete! Time: " + raceTime.toFixed(2)); resetGame(); }
+            if (laps >= 3) {
+                if (raceTime < bestTime) bestTime = raceTime;
+                document.getElementById('best-time').innerText = bestTime.toFixed(1);
+                alert(`Race Complete! Time: ${raceTime.toFixed(2)}s`);
+                resetGame();
+            }
         }
     }
 
-    // Challenge: Goal Logic
+    // Challenge Logic
     if (currentMode === 'challenge') {
         timeLeft -= 0.016;
-        if (Math.sqrt((px-goalX)**2 + (pz-goalZ)**2) < 1.2 && Math.abs(vx) < 0.05) {
-            stayTimer += 0.016; goalRing.material.color.set(0x4ade80);
+        const dist = Math.sqrt((px - goalX)**2 + (pz - goalZ)**2);
+        if (dist < 1.2 && Math.abs(vx) < 0.05) {
+            stayTimer += 0.016;
+            goalRing.material.color.set(0x4ade80);
             if (stayTimer >= 3) { score++; timeLeft = 10.0; stayTimer = 0; spawnGoal(); }
         } else { stayTimer = 0; goalRing.material.color.set(0xfbbf24); }
         document.getElementById('timer').innerText = Math.max(0, timeLeft).toFixed(1);
         document.getElementById('score').innerText = score;
-        if (timeLeft <= 0) { gameActive = false; alert("Time Up! Score: " + score); location.reload(); }
+        if (timeLeft <= 0) { gameActive = false; alert("Score: " + score); location.reload(); }
     }
 
-    // Update Visuals
     ball.position.set(px, 0.5, pz);
     ball.rotation.z -= vx; ball.rotation.x += vz;
 
-    // Telemetry Arrows
+    // Telemetry
     const wPos = new THREE.Vector3(); ball.getWorldPosition(wPos);
     updateArrow(arrowG, fgX, fgZ, wPos, 0.5);
     updateArrow(arrowF, -vx * 10, -vz * 10, wPos, 0.6);
+    updateArrow(arrowN, nFX, nFZ, wPos, 0.7);
 
     document.getElementById('v-total').innerText = Math.sqrt(vx*vx + vz*vz).toFixed(2);
     document.getElementById('normal-force').innerText = normalForce.toFixed(2);
@@ -205,12 +209,10 @@ function updateArrow(a, fx, fz, p, h) {
     } else a.visible = false;
 }
 
-// UI Event Handlers
 document.getElementById('start-button').addEventListener('click', () => {
     mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
     mu = parseFloat(document.getElementById('surface-input').value) || 0.15;
     g = parseFloat(document.getElementById('gravity-input').value) || 9.81;
-    
     document.getElementById('ui').style.display = 'none';
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('game-stats').classList.toggle('hidden', currentMode !== 'challenge');
@@ -219,8 +221,10 @@ document.getElementById('start-button').addEventListener('click', () => {
 
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission().then(res => { if (res === 'granted') initThree(); });
-    } else { initThree(); }
+    } else initThree();
 });
 
-document.getElementById('toggle-hud').addEventListener('click', () => document.getElementById('hud').classList.toggle('collapsed'));
 document.getElementById('reset-ball-btn').addEventListener('click', resetGame);
+document.getElementById('toggle-hud').addEventListener('click', () => {
+    document.getElementById('hud').classList.toggle('collapsed');
+});
