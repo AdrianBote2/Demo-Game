@@ -54,16 +54,16 @@ function initThree() {
     pillar.position.y = 2; pillar.castShadow = true;
     platformGroup.add(pillar);
 
-    // RADIAL GATES (Rotated 90 degrees)
-    // Geometry is now (0.8, 8) to make them point from center to edge
-    finishLine = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 8), new THREE.MeshBasicMaterial({ color: 0x4ade80 }));
+    // FINISH LINE (Green - Racing)
+    finishLine = new THREE.Mesh(new THREE.PlaneGeometry(8, 0.8), new THREE.MeshBasicMaterial({ color: 0x4ade80 }));
     finishLine.rotation.x = -Math.PI / 2;
-    finishLine.position.set(0, 0.02, 6.5); // South Gate
+    finishLine.position.set(0, 0.02, 6); 
     platformGroup.add(finishLine);
 
-    checkLine = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+    // CHECKPOINT LINE (Red - Racing)
+    checkLine = new THREE.Mesh(new THREE.PlaneGeometry(8, 0.8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
     checkLine.rotation.x = -Math.PI / 2;
-    checkLine.position.set(0, 0.02, -6.5); // North Gate
+    checkLine.position.set(0, 0.02, -6);
     platformGroup.add(checkLine);
 
     // Goal Ring (Challenge)
@@ -71,7 +71,7 @@ function initThree() {
     goalRing.rotation.x = Math.PI / 2; goalRing.position.y = 0.05;
     platformGroup.add(goalRing);
 
-    // Ball
+    // Ball (Child of group for perfect floor contact)
     ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 80 }));
     ball.castShadow = true;
     platformGroup.add(ball);
@@ -94,10 +94,12 @@ function initThree() {
 
 function resetGame() {
     px = (currentMode === 'racing') ? 6 : 0; 
-    pz = 0;
+    pz = (currentMode === 'racing') ? 0 : 0;
     vx = 0; vz = 0; laps = 0; hasCheckpoint = false; raceTime = 0; stayTimer = 0; score = 0; timeLeft = 10.0;
     
-    pillar.visible = finishLine.visible = checkLine.visible = (currentMode === 'racing');
+    pillar.visible = (currentMode === 'racing');
+    finishLine.visible = (currentMode === 'racing');
+    checkLine.visible = (currentMode === 'racing');
     goalRing.visible = (currentMode === 'challenge');
     checkLine.material.color.set(0xef4444);
 
@@ -125,7 +127,7 @@ function animate() {
     platformGroup.rotation.z = -radX;
     platformGroup.rotation.x = radZ;
 
-    // Physics
+    // Physics (Local to platform)
     const fgX = mass * g * Math.sin(radX), fgZ = mass * g * Math.sin(radZ);
     const normalForce = mass * g * Math.cos(Math.sqrt(radX**2 + radZ**2));
     const maxFriction = mu * normalForce;
@@ -137,43 +139,25 @@ function animate() {
     vz = (nFZ === 0) ? vz * 0.92 : vz + (nFZ / mass) * 0.016;
     px += vx; pz += vz;
 
-    // Boundary & Pillar Collision
+    // Wall Collision
     if (Math.abs(px) > 10.5) { px = Math.sign(px) * 10.5; vx *= -0.5; }
     if (Math.abs(pz) > 10.5) { pz = Math.sign(pz) * 10.5; vz *= -0.5; }
 
+    // Pillar Collision (Racing Mode)
     if (currentMode === 'racing') {
         const dist = Math.sqrt(px*px + pz*pz);
-        if (dist < 3.5) {
+        if (dist < 3.5) { // Radius 3 + Ball 0.5
             const angle = Math.atan2(pz, px);
-            px = Math.cos(angle) * 3.5; pz = Math.sin(angle) * 3.5;
+            px = Math.cos(angle) * 3.5;
+            pz = Math.sin(angle) * 3.5;
             vx *= -0.3; vz *= -0.3;
-        }
-
-        raceTime += 0.016;
-        document.getElementById('race-timer').innerText = raceTime.toFixed(1);
-
-        // RADIAL GATE CROSSING LOGIC
-        // Top Gate (North)
-        if (pz < -5.5 && pz > -7.5 && Math.abs(px) < 0.5 && !hasCheckpoint) {
-            hasCheckpoint = true;
-            checkLine.material.color.set(0x4ade80);
-        }
-        // Bottom Gate (South)
-        if (pz > 5.5 && pz < 7.5 && Math.abs(px) < 0.5 && hasCheckpoint) {
-            laps++;
-            hasCheckpoint = false;
-            checkLine.material.color.set(0xef4444);
-            document.getElementById('lap-count').innerText = laps;
-            if (laps >= 3) {
-                if (raceTime < bestTime) bestTime = raceTime;
-                document.getElementById('best-time').innerText = bestTime.toFixed(1);
-                alert(`Race Complete! Time: ${raceTime.toFixed(2)}s`);
-                resetGame();
-            }
         }
     }
 
-    // Challenge Logic
+    ball.position.set(px, 0.5, pz);
+    ball.rotation.z -= vx; ball.rotation.x += vz;
+
+    // --- MODE LOGIC ---
     if (currentMode === 'challenge') {
         timeLeft -= 0.016;
         const dist = Math.sqrt((px - goalX)**2 + (pz - goalZ)**2);
@@ -185,12 +169,32 @@ function animate() {
         document.getElementById('timer').innerText = Math.max(0, timeLeft).toFixed(1);
         document.getElementById('score').innerText = score;
         if (timeLeft <= 0) { gameActive = false; alert("Score: " + score); location.reload(); }
+    } 
+    else if (currentMode === 'racing') {
+        raceTime += 0.016;
+        document.getElementById('race-timer').innerText = raceTime.toFixed(1);
+
+        // Checkpoint logic (Cross Z = -6)
+        if (pz < -5.8 && pz > -6.2 && !hasCheckpoint) {
+            hasCheckpoint = true;
+            checkLine.material.color.set(0x4ade80);
+        }
+        // Lap logic (Cross Z = +6)
+        if (pz > 5.8 && pz < 6.2 && hasCheckpoint) {
+            laps++;
+            hasCheckpoint = false;
+            checkLine.material.color.set(0xef4444);
+            document.getElementById('lap-count').innerText = laps;
+            if (laps >= 3) {
+                if (raceTime < bestTime) bestTime = raceTime;
+                document.getElementById('best-time').innerText = bestTime.toFixed(1);
+                alert(`3 Laps Complete! Time: ${raceTime.toFixed(2)}s`);
+                resetGame();
+            }
+        }
     }
 
-    ball.position.set(px, 0.5, pz);
-    ball.rotation.z -= vx; ball.rotation.x += vz;
-
-    // Telemetry
+    // Telemetry Arrows (World Space)
     const wPos = new THREE.Vector3(); ball.getWorldPosition(wPos);
     updateArrow(arrowG, fgX, fgZ, wPos, 0.5);
     updateArrow(arrowF, -vx * 10, -vz * 10, wPos, 0.6);
@@ -209,6 +213,7 @@ function updateArrow(a, fx, fz, p, h) {
     } else a.visible = false;
 }
 
+// UI Listeners
 document.getElementById('start-button').addEventListener('click', () => {
     mass = parseFloat(document.getElementById('mass-input').value) || 0.5;
     mu = parseFloat(document.getElementById('surface-input').value) || 0.15;
