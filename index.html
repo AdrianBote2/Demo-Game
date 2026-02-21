@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Data Lab</title>
+    <title>Physics Lab 2.0</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,43 +12,34 @@
 
     <div id="device-selector">
         <div class="selector-box">
-            <h2 style="color: #22d3ee; margin-top: 0;">DATA TERMINAL</h2>
-            <button id="choose-mobile">📱 Mobile (Tilt)</button>
-            <button id="choose-pc">💻 PC (WASD)</button>
+            <h2>SYSTEM INITIALIZATION</h2>
+            <button id="choose-mobile">📱 Mobile (Gyro)</button>
+            <button id="choose-pc">💻 PC (Keyboard)</button>
         </div>
     </div>
 
-    <div id="hud" class="hidden">
-        <div class="hud-header">
-            <span class="header">REAL-TIME DATA</span>
-            <button id="toggle-hud">▼</button>
+    <div id="hud-left" class="hud hidden">
+        <div class="header">LAB CONTROLS</div>
+        <div class="input-row"><label>μ Friction:</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
+        <div class="input-row"><label>m Mass:</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
+        <button id="reset-ball-btn">🔄 RESET BALL</button>
+    </div>
+
+    <div id="hud-right" class="hud hidden">
+        <div class="header">DATA OVERLAY</div>
+        <div class="graph-container">
+            <canvas id="physicsChart"></canvas>
         </div>
-        
-        <div id="hud-content">
-            <div class="input-row"><label>μ Friction:</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
-            <div class="input-row"><label>m Mass:</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
-
-            <hr>
-            <div class="graph-container">
-                <canvas id="physicsChart"></canvas>
-            </div>
-
-            <hr>
-            <div class="header" style="color: #4ade80;">TELEMETRY</div>
-            <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
-            <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
-            <div class="stat">ω: <span id="w-total">0.00</span> rad/s</div>
-            
-            <button id="reset-ball-btn">🔄 RESET EXPERIMENT</button>
+        <div class="telemetry-grid">
+            <div class="stat">V: <span id="v-total">0.00</span></div>
+            <div class="stat">A: <span id="a-total">0.00</span></div>
+            <div class="stat">θX: <span id="rot-x">0</span>°</div>
+            <div class="stat">θZ: <span id="rot-z">0</span>°</div>
         </div>
     </div>
 
     <div id="ui">
         <h1>PHYSICS LAB</h1>
-        <div class="mode-selection">
-            <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
-            <button class="mode-btn" id="mode-challenge">🎯 Target</button>
-        </div>
         <button id="start-button">START SIMULATION</button>
     </div>
 
