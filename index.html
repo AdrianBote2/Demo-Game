@@ -3,53 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Advanced Physics Laboratory</title>
+    <title>Physics Data Lab</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
     <div id="device-selector">
         <div class="selector-box">
-            <h2 style="color: #22d3ee; margin-top: 0; letter-spacing: 2px;">SYSTEM BOOT</h2>
-            <button id="choose-mobile">📱 Mobile (Gyroscope)</button>
-            <button id="choose-pc">💻 PC (WASD/Arrows)</button>
+            <h2 style="color: #22d3ee; margin-top: 0;">DATA TERMINAL</h2>
+            <button id="choose-mobile">📱 Mobile (Tilt)</button>
+            <button id="choose-pc">💻 PC (WASD)</button>
         </div>
     </div>
 
     <div id="hud" class="hidden">
         <div class="hud-header">
-            <span class="header">ANALYTICS ENGINE</span>
+            <span class="header">REAL-TIME DATA</span>
             <button id="toggle-hud">▼</button>
         </div>
         
         <div id="hud-content">
-            <div id="game-stats" class="hidden">
-                <div class="stat" style="color:#fbbf24">⏳ <span id="timer">10.0</span>s | 🎯 <span id="score">0</span></div>
-            </div>
-            <div id="racing-stats" class="hidden">
-                <div class="stat" style="color:#4ade80">⏱ <span id="race-timer">0.0</span>s | 🏁 Lap: <span id="lap-count">0</span></div>
+            <div class="input-row"><label>μ Friction:</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
+            <div class="input-row"><label>m Mass:</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
+
+            <hr>
+            <div class="graph-container">
+                <canvas id="physicsChart"></canvas>
             </div>
 
             <hr>
-            <div class="header" style="color: #22d3ee;">CONSTANTS</div>
-            <div class="input-row"><label>μ (Friction):</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
-            <div class="input-row"><label>m (Mass):</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
-            <div class="input-row"><label>g (Gravity):</label><input type="number" id="live-g" value="9.81" step="0.1"></div>
-
-            <hr>
-            <div class="header" style="color: #4ade80;">LINEAR DYNAMICS</div>
-            <div class="stat">V: <span id="v-total">0.00</span> m/s | A: <span id="a-total">0.00</span> m/s²</div>
+            <div class="header" style="color: #4ade80;">TELEMETRY</div>
+            <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
+            <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
+            <div class="stat">ω: <span id="w-total">0.00</span> rad/s</div>
             
-            <hr>
-            <div class="header" style="color: #f472b6;">ROTATIONAL DYNAMICS</div>
-            <div class="stat">ω: <span id="w-total">0.00</span> rad/s | τ: <span id="torque">0.00</span> Nm</div>
-            
-            <hr>
-            <div class="header" style="color: #a855f7;">ORIENTATION (DEGREES)</div>
-            <div class="stat">θX: <span id="rot-x">0</span>° | θY: <span id="rot-y">0</span>° | θZ: <span id="rot-z">0</span>°</div>
-            
-            <button id="reset-ball-btn">🔄 RESET POSITION</button>
+            <button id="reset-ball-btn">🔄 RESET EXPERIMENT</button>
         </div>
     </div>
 
@@ -58,9 +48,8 @@
         <div class="mode-selection">
             <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
             <button class="mode-btn" id="mode-challenge">🎯 Target</button>
-            <button class="mode-btn" id="mode-racing">🏎 Racing</button>
         </div>
-        <button id="start-button">INITIALIZE SIMULATION</button>
+        <button id="start-button">START SIMULATION</button>
     </div>
 
     <script src="index.js"></script>
