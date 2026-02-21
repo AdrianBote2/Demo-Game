@@ -306,7 +306,7 @@ input[type="number"]:focus {
 
     /* Lab controls on mobile */
     #hud-left {
-        width: 130px;
+        width: 150px;
         top: 10px;
         left: 10px;
         padding: 12px;
