@@ -18,36 +18,31 @@
         </div>
     </div>
 
-    <div id="hud" class="hud-panel hidden">
-        <div class="hud-header">
-            <span class="header">LAB MONITOR</span>
-            <button id="toggle-hud">▼</button>
-        </div>
-        
+    <div id="hud-left" class="hud-panel hidden">
+        <div class="hud-header">LAB CONTROLS</div>
+        <div class="stat"><label>μ (Friction):</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
+        <div class="stat"><label>m (Mass kg):</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
+        <div class="stat"><label>g (Gravity):</label><input type="number" id="live-g" value="9.81" step="0.1"></div>
+        <hr>
         <div id="game-stats" class="hidden">
             <div class="stat">Timer: <span id="timer">10.0</span>s</div>
             <div class="stat">Score: <span id="score">0</span></div>
         </div>
-
         <div id="racing-stats" class="hidden">
             <div class="stat">Time: <span id="race-timer">0.0</span>s</div>
             <div class="stat">Laps: <span id="lap-count">0</span>/3</div>
         </div>
-
-        <hr>
-        <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
-        <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
-        <div class="stat">Normal: <span id="normal-force">0.00</span> N</div>
-        <div class="stat">Friction: <span id="friction-force">0.00</span> N</div>
         <button id="reset-ball-btn">🔄 RESET POSITION</button>
     </div>
 
-    <div id="analytics-panel" class="hud-panel hidden">
-        <span class="header">LIVE DATA STREAM</span>
+    <div id="hud-right" class="hud-panel hidden">
+        <div class="hud-header">ANALYTICS OVERLAY</div>
         <div class="graph-container">
             <canvas id="physicsChart"></canvas>
         </div>
         <div class="telemetry-grid">
+            <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
+            <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
             <div class="stat">θX: <span id="rot-x">0</span>°</div>
             <div class="stat">θZ: <span id="rot-z">0</span>°</div>
         </div>
@@ -55,10 +50,9 @@
     </div>
 
     <div id="match-hud" class="hud-panel hidden">
-        <span class="header" style="color: var(--accent-green);">VELOCITY MATCH CHALLENGE</span>
+        <span class="header" style="color: var(--accent-green);">VELOCITY MATCH</span>
         <div class="stat">Target: <span id="target-val">2.50</span> m/s</div>
-        <div class="stat">Match Time: <span id="match-timer">0.0</span> / 3.0s</div>
-        <div style="width: 100%; height: 6px; background: #0f172a; margin-top: 10px; border-radius: 3px; overflow: hidden;">
+        <div style="width: 100%; height: 6px; background: #0f172a; border-radius: 3px; overflow: hidden; margin-top: 5px;">
             <div id="match-progress" style="width: 0%; height: 100%; background: var(--accent-green); transition: width 0.1s;"></div>
         </div>
     </div>
@@ -69,12 +63,6 @@
             <button class="mode-btn active" id="mode-sandbox">🛠 Sandbox</button>
             <button class="mode-btn" id="mode-challenge">🎯 Challenge</button>
             <button class="mode-btn" id="mode-racing">🏎 Racing</button>
-        </div>
-        
-        <div class="setup-form">
-            <label>Mass (kg)<input type="number" id="mass-input" value="0.5" step="0.1"></label>
-            <label>Friction (μ)<input type="number" id="surface-input" value="0.15" step="0.01"></label>
-            <label>Gravity (g)<input type="number" id="gravity-input" value="9.81" step="0.1"></label>
         </div>
         <button id="start-button">INITIALIZE ENGINE</button>
     </div>

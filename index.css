@@ -3,7 +3,6 @@
     --panel-bg: rgba(30, 41, 59, 0.85);
     --accent-cyan: #22d3ee;
     --accent-green: #4ade80;
-    --accent-red: #ef4444;
     --text-main: #f8fafc;
     --text-dim: #94a3b8;
 }
@@ -11,29 +10,25 @@
 body { margin: 0; background: var(--bg-dark); font-family: 'Segoe UI', sans-serif; overflow: hidden; color: var(--text-main); touch-action: none; }
 canvas { display: block; }
 
-#device-selector { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
+#device-selector { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; align-items: center; justify-content: center; }
 .selector-box { background: #1e293b; padding: 40px; border-radius: 24px; text-align: center; border: 1px solid #334155; }
-.selector-box button { display: block; width: 260px; padding: 18px; margin: 15px auto; font-size: 1.1rem; cursor: pointer; border-radius: 12px; border: none; background: #334155; color: white; transition: 0.2s; }
-.selector-box button:hover { background: var(--accent-cyan); color: #0f172a; }
+.selector-box button { display: block; width: 260px; padding: 18px; margin: 15px auto; font-size: 1.1rem; border-radius: 12px; border: none; background: #334155; color: white; cursor: pointer; }
 
-.hud-panel { position: absolute; background: var(--panel-bg); backdrop-filter: blur(12px); padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10; font-family: 'Courier New', monospace; }
-#hud { top: 20px; left: 20px; width: 220px; }
-#analytics-panel { top: 20px; right: 20px; width: 280px; }
-#match-hud { bottom: 30px; left: 50%; transform: translateX(-50%); width: 300px; text-align: center; }
+.hud-panel { position: absolute; background: var(--panel-bg); backdrop-filter: blur(12px); padding: 15px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10; font-family: 'Courier New', monospace; }
+#hud-left { top: 20px; left: 20px; width: 220px; }
+#hud-right { top: 20px; right: 20px; width: 280px; }
+#match-hud { bottom: 20px; left: 50%; transform: translateX(-50%); width: 240px; text-align: center; border: 1px solid var(--accent-green); }
 
-.header { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; font-weight: bold; }
-.stat { font-size: 0.95rem; margin: 8px 0; color: #e2e8f0; }
-.stat span { font-weight: bold; color: var(--accent-cyan); }
-.speed-match { color: var(--accent-green) !important; text-shadow: 0 0 12px var(--accent-green); }
+.hud-header { font-size: 0.75rem; color: var(--accent-cyan); letter-spacing: 2px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #334155; }
+.stat { font-size: 0.85rem; margin: 5px 0; }
+input { width: 70px; background: #0f172a; border: 1px solid #334155; color: var(--accent-green); border-radius: 4px; padding: 2px 5px; float: right; }
 
-.graph-container { background: rgba(15, 23, 42, 0.6); border-radius: 8px; height: 130px; margin-top: 10px; padding: 5px; }
+.graph-container { background: rgba(15, 23, 42, 0.6); height: 120px; margin-top: 10px; border-radius: 8px; }
 .telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 
-#ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 30px; border-radius: 20px; width: 320px; z-index: 20; text-align: center; }
-.mode-selection { display: flex; gap: 8px; margin-bottom: 20px; }
-.mode-btn { flex: 1; padding: 10px; font-size: 0.75rem; background: #334155; color: var(--text-dim); border: none; border-radius: 8px; cursor: pointer; }
-.mode-btn.active { background: var(--accent-cyan); color: #0f172a; }
-input { width: 100%; padding: 12px; margin: 6px 0 12px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; }
-#start-button { width: 100%; padding: 16px; background: var(--accent-green); color: #064e3b; font-weight: bold; cursor: pointer; border-radius: 10px; border: none; }
+#ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 30px; border-radius: 20px; z-index: 20; text-align: center; }
+.mode-btn { padding: 10px; background: #334155; color: white; border: none; margin: 5px; cursor: pointer; border-radius: 5px; }
+.mode-btn.active { background: var(--accent-cyan); color: #020617; }
+#start-button { width: 100%; padding: 15px; background: var(--accent-green); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
 .hidden { display: none !important; }
