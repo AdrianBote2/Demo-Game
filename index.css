@@ -5,72 +5,78 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden; 
     color: white;
-    touch-action: none; /* Prevents browser pull-to-refresh and accidental zooming */
+    touch-action: none; /* Prevents browser pull-to-refresh during game */
 }
 
-canvas { 
-    display: block; 
-    width: 100vw; 
-    height: 100vh; 
-}
+canvas { display: block; width: 100vw; height: 100vh; }
 
-/* --- The Glassmorphism HUD --- */
+/* --- HUD (Telemetry Panel) --- */
 #hud {
     position: absolute; 
     top: 20px; 
     left: 20px;
     background: rgba(15, 23, 42, 0.85); 
     backdrop-filter: blur(10px);
-    padding: 15px 20px;
+    padding: 15px 20px; 
     border-radius: 12px; 
-    color: #e2e8f0; 
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    border: 1px solid rgba(255, 255, 255, 0.1); 
+    color: #e2e8f0;
+    font-family: 'Courier New', monospace; 
+    border: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 10; 
-    width: 200px;
+    width: 220px; 
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease-in-out;
 }
 
-/* HUD Collapsing Logic */
-.hud-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-
-#hud-content {
-    overflow: hidden;
-    transition: max-height 0.3s ease-in-out;
-    max-height: 500px;
-}
-
-#hud.collapsed #hud-content {
-    max-height: 0;
-}
-
-#hud.collapsed {
-    padding-bottom: 10px;
-    width: 130px; 
-}
+#hud.collapsed { height: 40px; overflow: hidden; }
 
 #toggle-hud {
     background: #334155; 
     border: none; 
     color: white; 
-    border-radius: 4px; 
+    border-radius: 4px;
     cursor: pointer; 
     padding: 2px 8px; 
     font-size: 0.8rem;
 }
 
-/* HUD Typography */
-#hud hr { border: 0; border-top: 1px solid #334155; margin: 10px 0; }
-.stat { font-size: 0.9rem; margin-bottom: 5px; }
-.header { font-size: 0.7rem; color: #64748b; letter-spacing: 1px; font-weight: bold; }
-.legend { font-size: 0.75rem; margin-top: 4px; font-weight: 500; }
+.hud-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px; 
+}
 
-/* --- Start Menu / Mode Selection --- */
+#hud hr { border: 0; border-top: 1px solid #334155; margin: 10px 0; }
+
+.stat { 
+    font-size: 0.9rem; 
+    margin-bottom: 5px; 
+    transition: all 0.2s; 
+}
+
+.header { 
+    font-size: 0.7rem; 
+    color: #64748b; 
+    letter-spacing: 1px; 
+    font-weight: bold; 
+}
+
+.legend { 
+    font-size: 0.75rem; 
+    margin-top: 4px; 
+    font-weight: 500; 
+}
+
+/* --- Sandbox Special Feedback --- */
+.speed-match {
+    color: #4ade80 !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
+    transform: scale(1.05);
+}
+
+/* --- Setup Menu --- */
 #ui {
     position: absolute; 
     top: 50%; 
@@ -82,17 +88,16 @@ canvas {
     text-align: center; 
     z-index: 20; 
     width: 300px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 
-h1 { margin: 0 0 10px 0; font-size: 1.4rem; color: #22d3ee; }
-p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.4; min-height: 40px; }
+h1 { font-size: 1.5rem; margin-top: 0; color: #f8fafc; }
 
-/* Mode Switcher Tabs */
+/* Mode Selection Buttons */
 .mode-selection { 
     display: flex; 
     gap: 8px; 
-    margin-bottom: 20px; 
+    margin-bottom: 15px; 
 }
 
 .mode-btn { 
@@ -104,7 +109,7 @@ p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.4; m
     border: none; 
     border-radius: 6px; 
     cursor: pointer; 
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 
 .mode-btn.active { 
@@ -113,58 +118,61 @@ p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.4; m
     font-weight: bold; 
 }
 
-/* Setup Form Inputs */
+#mode-description {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    min-height: 40px;
+}
+
+/* Form Styling */
 .setup-form label { 
     display: block; 
     margin-bottom: 15px; 
     font-size: 0.8rem; 
     text-align: left; 
-    color: #cbd5e1;
+    color: #cbd5e1; 
 }
 
 input, select { 
     width: 100%; 
     padding: 10px; 
-    margin-top: 5px;
+    margin-top: 5px; 
     background: #0f172a; 
     border: 1px solid #334155; 
     color: white; 
     border-radius: 6px; 
-    box-sizing: border-box;
+    box-sizing: border-box; /* Ensures padding doesn't break width */
 }
 
-/* Primary Action Button */
+/* Action Buttons */
 #start-button { 
     width: 100%; 
     padding: 14px; 
     font-weight: bold; 
     cursor: pointer; 
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.2s;
-    border: none;
+    border-radius: 8px; 
+    font-size: 1rem; 
+    border: none; 
     margin-top: 10px;
+    background: #4ade80; 
+    color: #064e3b;
+    transition: opacity 0.2s;
 }
 
-#start-button:hover { 
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+#start-button:active { opacity: 0.8; }
+
+#reset-ball-btn { 
+    width: 100%; 
+    padding: 8px; 
+    background: #334155; 
+    color: #22d3ee; 
+    border: 1px solid #475569; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    font-size: 0.8rem; 
 }
 
-/* Mode-Specific Reset Button */
-#reset-ball-btn {
-    width: 100%;
-    padding: 8px;
-    background: #334155;
-    color: #22d3ee;
-    border: 1px solid #475569;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    transition: background 0.2s;
-}
-
-/* Utility */
+/* Utilities */
 .hidden { display: none !important; }
