@@ -3,47 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Physics Lab: Sandbox Edition</title>
+    <title>Physics Lab: Cross-Platform</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
 <body>
 
+    <div id="device-selector">
+        <div class="selector-box">
+            <h2 style="color: #22d3ee; margin-top: 0;">LAB ACCESS</h2>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 25px;">Choose your control interface:</p>
+            <button id="choose-mobile">📱 Mobile (Tilt Sensor)</button>
+            <button id="choose-pc">💻 PC (Arrows / WASD)</button>
+        </div>
+    </div>
+
     <div id="hud" class="hidden">
         <div class="hud-header">
-            <span class="header">LAB TELEMETRY</span>
+            <span class="header">SYSTEM TELEMETRY</span>
             <button id="toggle-hud">▼</button>
         </div>
         
         <div id="hud-content">
             <div id="game-stats" class="hidden">
-                <div class="stat" style="color:#fbbf24; margin-top:10px;">⏳ Time: <span id="timer">10.0</span>s</div>
+                <div class="stat" style="color:#fbbf24">⏳ Time: <span id="timer">10.0</span>s</div>
                 <div class="stat" style="color:#a855f7">🎯 Goals: <span id="score">0</span></div>
             </div>
 
             <div id="racing-stats" class="hidden">
-                <div class="stat" style="color:#4ade80; margin-top:10px;">⏱ Race: <span id="race-timer">0.0</span>s</div>
+                <div class="stat" style="color:#4ade80">⏱ Race: <span id="race-timer">0.0</span>s</div>
                 <div class="stat" style="color:#f472b6">🏁 Laps: <span id="lap-count">0</span> / 3</div>
                 <div class="stat" style="color:#22d3ee">🏆 Best: <span id="best-time">--</span>s</div>
             </div>
 
             <div id="sandbox-controls" class="hidden">
-                <div class="stat" style="color:#22d3ee; margin-top:10px;">🎯 Target: 2.50 m/s</div>
-                <button id="reset-ball-btn">🔄 Reset Ball</button>
+                <div class="stat" style="color:#22d3ee">🎯 Target: 2.50 m/s</div>
+                <button id="reset-ball-btn">🔄 Reset Position</button>
             </div>
 
             <hr>
             <div class="header">PHYSICS TRACERS</div>
-            
             <div class="stat">Velocity: <span id="v-total">0.00</span> m/s</div>
             <div class="stat">Accel: <span id="a-total">0.00</span> m/s²</div>
             <div class="stat">Normal (Fn): <span id="normal-force">0.00</span> N</div>
             <div class="stat">Friction (Ff): <span id="friction-force">0.00</span> N</div>
             
             <hr>
-            <div class="legend" style="color:#ef4444">🔴 Gravity Vector (Fg)</div>
-            <div class="legend" style="color:#3b82f6">🔵 Friction Vector (Ff)</div>
-            <div class="legend" style="color:#4ade80">🟢 Net Force (Fnet)</div>
+            <div class="legend" style="color:#ef4444; font-size: 0.7rem;">🔴 Gravity (Fg)</div>
+            <div class="legend" style="color:#3b82f6; font-size: 0.7rem;">🔵 Friction (Ff)</div>
+            <div class="legend" style="color:#4ade80; font-size: 0.7rem;">🟢 Net Force (Fnet)</div>
         </div>
     </div>
 
@@ -59,13 +67,13 @@
         <p id="mode-description">Endless Road: Match 2.50 m/s! (Wrap-around enabled)</p>
 
         <div class="setup-form">
-            <label>Object Mass (kg): 
+            <label>Mass (kg): 
                 <input type="number" id="mass-input" value="0.5" step="0.1">
             </label>
-            <label>Surface Friction (μ): 
+            <label>Friction (μ): 
                 <input type="number" id="surface-input" value="0.15" step="0.01">
             </label>
-            <label>Environment Gravity: 
+            <label>Gravity: 
                 <select id="gravity-input">
                     <option value="9.81">Earth (9.81 m/s²)</option>
                     <option value="1.62">Moon (1.62 m/s²)</option>
