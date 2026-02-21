@@ -88,14 +88,25 @@ canvas { display: block; }
 /* Right Panel: Analytics */
 #hud-right { top: 20px; right: 20px; width: 280px; }
 
-/* Bottom Panel: Sandbox Mini-Game */
+/* Bottom Panel: Updated for Dynamic Match Label */
 #match-hud { 
     bottom: 30px; 
     left: 50%; 
     transform: translateX(-50%); 
     width: 280px; 
     text-align: center; 
-    border: 1px solid rgba(74, 222, 128, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: border 0.3s ease;
+}
+
+/* Visual cue for match type */
+#match-label {
+    display: block;
+    font-weight: bold;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    transition: color 0.3s ease;
 }
 
 .hud-header { 
@@ -117,9 +128,12 @@ canvas { display: block; }
     align-items: center;
 }
 
-.stat span { font-weight: bold; color: var(--accent-cyan); }
+/* Dynamic color states for the Speed and Accel readouts */
+#v-total, #a-total { 
+    font-weight: bold; 
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
 
-/* Input Styling for Live Physics */
 .stat label { color: var(--text-dim); font-size: 0.75rem; }
 
 input[type="number"] { 
@@ -154,27 +168,23 @@ input[type="number"]:focus {
     margin-top: 12px; 
 }
 
-.speed-match { 
-    color: var(--accent-green) !important; 
-    text-shadow: 0 0 12px var(--accent-green); 
-}
-
-/* Progress Bar for Velocity Match */
+/* Progress Bar Styling */
 .progress-bar-bg {
     width: 100%; 
-    height: 6px; 
+    height: 8px; 
     background: #0f172a; 
     border-radius: 10px; 
-    margin-top: 8px; 
+    margin-top: 12px; 
     overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 #match-progress { 
     width: 0%; 
     height: 100%; 
     background: var(--accent-green); 
-    box-shadow: 0 0 10px var(--accent-green);
-    transition: width 0.1s linear; 
+    box-shadow: 0 0 15px var(--accent-green);
+    transition: width 0.1s linear, background 0.3s ease; 
 }
 
 /* --- BUTTONS & ACTIONS --- */
