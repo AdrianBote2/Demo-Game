@@ -300,7 +300,7 @@ input[type="number"]:focus {
 
     /* 2. Reposition the Lab Controls drop-down */
     #hud-left {
-        width: 130px;
+        width: 160px;
         top: 10px;
         left: 10px;
         padding: 10px;
