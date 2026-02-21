@@ -70,7 +70,7 @@ canvas { display: block; }
     transform: translateY(-2px);
 }
 
-/* --- HUD SYSTEM --- */
+/* --- HUD SYSTEM (PC DEFAULTS) --- */
 .hud-panel { 
     position: absolute; 
     background: var(--panel-bg); 
@@ -261,15 +261,16 @@ input[type="number"]:focus {
 
 /* --- RESPONSIVE MOBILE OVERRIDES --- */
 @media (max-width: 768px) {
+    /* Shrink Analytics and Reposition */
     #hud-right { 
-        width: 100px; 
+        width: 160px; 
         padding: 12px;
         top: 10px;
         right: 10px;
     }
 
     .graph-container { 
-        height: 50px; 
+        height: 70px; 
     }
 
     .telemetry-grid { 
@@ -282,17 +283,58 @@ input[type="number"]:focus {
         margin: 2px 0;
     }
 
-    #hud-left {
-        width: 130px;
-        top: 10px;
-        left: 10px;
-        padding: 12px;
+    /* Move Game/Racing stats to Top-Left where Lab Controls used to be */
+    #game-stats, #racing-stats {
+        position: fixed; 
+        top: 10px; 
+        left: 10px; 
+        width: 110px;
+        background: var(--panel-bg); 
+        padding: 8px; 
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1); 
+        z-index: 100;
+        font-size: 0.75rem;
     }
 
-    #match-hud {
-        bottom: 15px;
-        width: 220px;
+    /* Transform Lab Controls into a Drop-Up Gear (Bottom-Left) */
+    #hud-left {
+        top: auto; 
+        bottom: 15px; 
+        left: 15px;
+        width: 44px; 
+        height: 44px;
+        overflow: hidden; 
         padding: 10px;
+        transition: width 0.3s ease, height 0.3s ease;
+        display: flex; 
+        flex-direction: column; 
+        cursor: pointer;
+        z-index: 101;
+    }
+
+    #hud-left::before {
+        content: "⚙️"; 
+        font-size: 1.2rem; 
+        text-align: center; 
+        display: block; 
+        margin-bottom: 15px;
+    }
+
+    #hud-left:active, #hud-left:focus-within {
+        width: 200px; 
+        height: auto;
+    }
+
+    /* Move Match HUD up to clear the gear icon */
+    #match-hud {
+        bottom: 80px;
+        width: 200px;
+        padding: 10px;
+    }
+
+    #mode-description {
+        display: none;
     }
 }
 
