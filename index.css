@@ -17,7 +17,7 @@ body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
     overflow: hidden; 
     color: var(--text-main); 
-    /* Anti-zoom protection for mobile */
+    /* Prevent double-tap zoom bugs on mobile */
     touch-action: manipulation; 
 }
 
@@ -85,12 +85,17 @@ canvas { display: block; }
 }
 
 /* Left Panel: Lab Controls */
-#hud-left { top: 20px; left: 20px; width: 230px; transition: all 0.3s ease; }
+#hud-left { 
+    top: 20px; 
+    left: 20px; 
+    width: 230px; 
+    transition: all 0.3s ease; 
+}
 
 /* Right Panel: Analytics */
 #hud-right { top: 20px; right: 20px; width: 280px; }
 
-/* Bottom Panel: Sandbox Challenges */
+/* Bottom Panel: Sandbox Challenges / Game Stats */
 #match-hud { 
     bottom: 30px; 
     left: 50%; 
@@ -100,26 +105,24 @@ canvas { display: block; }
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* --- NEW TOGGLE LOGIC (Lab Controls Only) --- */
-/* Add a button/label in your HTML like: <label for="lab-toggle" class="drop-arrow">▼</label> */
-#lab-toggle { display: none; }
-
-.drop-arrow {
-    cursor: pointer;
-    display: block;
-    font-size: 1.2rem;
+/* --- DROP-DOWN TOGGLE LOGIC --- */
+.drop-arrow { 
+    cursor: pointer; 
+    transition: transform 0.3s ease; 
+    font-size: 0.9rem;
     color: var(--accent-cyan);
-    text-align: right;
-    margin-bottom: 5px;
-    transition: transform 0.3s;
 }
 
-/* If checkbox is checked, hide everything except the header/arrow */
-#lab-toggle:checked ~ .hud-content { display: none; }
-#lab-toggle:checked ~ .drop-arrow { transform: rotate(-90deg); }
-#lab-toggle:checked + #hud-left { height: 40px; width: 100px; overflow: hidden; }
+/* Checkbox Hack Logic */
+#lab-toggle:checked + .hud-header .drop-arrow { 
+    transform: rotate(-90deg); 
+}
 
-/* --- HUD INTERNALS --- */
+#lab-toggle:checked ~ .hud-content { 
+    display: none; 
+}
+
+/* --- HUD ELEMENTS --- */
 #match-label {
     display: block;
     font-weight: bold;
@@ -164,7 +167,7 @@ input[type="number"] {
     border-radius: 6px; 
     font-family: 'Courier New', monospace;
     outline: none;
-    font-size: 16px; /* Prevents iOS auto-zoom */
+    font-size: 16px; /* Prevents iOS auto-zoom on focus */
 }
 
 input[type="number"]:focus {
@@ -283,55 +286,52 @@ input[type="number"]:focus {
 
 /* --- RESPONSIVE MOBILE OVERRIDES --- */
 @media (max-width: 768px) {
+    /* 1. Slim down the Right Analytics */
     #hud-right { 
-        width: 110px; 
-        padding: 8px;
+        width: 120px; 
+        padding: 10px;
         top: 10px;
         right: 10px;
     }
 
-    .graph-container { 
-        height: 60px; 
-    }
+    .graph-container { height: 60px; }
+    .telemetry-grid { grid-template-columns: 1fr; gap: 2px; }
+    #mode-description { display: none; }
 
-    .telemetry-grid { 
-        grid-template-columns: 1fr;
-        gap: 2px;
-    }
-
-    .telemetry-grid .stat {
-        font-size: 0.7rem;
-        margin: 1px 0;
-    }
-
-    /* Lab controls on mobile */
+    /* 2. Reposition the Lab Controls drop-down */
     #hud-left {
-        width: 160px;
+        width: 130px;
         top: 10px;
         left: 10px;
-        padding: 12px;
-        z-index: 100;
-    }
-
-    /* Reposition Goal/Racing Stats to Top Left */
-    #game-stats, #racing-stats {
-        position: fixed; 
-        top: 80px; /* Moves them below the Lab Controls on mobile */
-        left: 10px;
-        background: var(--panel-bg);
-        padding: 8px;
-        border-radius: 10px;
-        font-size: 0.7rem;
-        z-index: 90;
-    }
-
-    #match-hud {
-        bottom: 15px;
-        width: 220px;
         padding: 10px;
+    }
+
+    /* 3. The Bottom Middle HUD - Repositioned Timer/Score here */
+    #match-hud {
+        bottom: 20px;
+        width: 240px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Adjust the game/racing stats for the bottom box */
+    #game-stats, #racing-stats {
+        position: relative;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: 5px;
+    }
+
+    .stat {
+        font-size: 0.75rem;
+        margin: 2px 0;
     }
 }
 
 /* --- UTILS --- */
 .hidden { display: none !important; }
-hr { border: 0; border-top: 1px solid #334155; margin: 15px 0; }
+hr { border: 0; border-top: 1px solid #334155; margin: 10px 0; }
