@@ -20,40 +20,59 @@
 
     <div id="hud-left" class="hud-panel hidden">
         <div class="hud-header">LAB CONTROLS</div>
-        <div class="stat"><label>μ (Friction):</label><input type="number" id="live-mu" value="0.15" step="0.01"></div>
-        <div class="stat"><label>m (Mass kg):</label><input type="number" id="live-mass" value="0.5" step="0.1"></div>
-        <div class="stat"><label>g (Gravity):</label><input type="number" id="live-g" value="9.81" step="0.1"></div>
+        
+        <div class="stat">
+            <label>μ (Friction):</label>
+            <input type="number" id="live-mu" value="0.15" step="0.01">
+        </div>
+        <div class="stat">
+            <label>m (Mass kg):</label>
+            <input type="number" id="live-mass" value="0.5" step="0.1">
+        </div>
+        <div class="stat">
+            <label>g (Gravity):</label>
+            <input type="number" id="live-g" value="9.81" step="0.1">
+        </div>
+        
         <hr>
+
         <div id="game-stats" class="hidden">
             <div class="stat">Timer: <span id="timer">10.0</span>s</div>
             <div class="stat">Score: <span id="score">0</span></div>
         </div>
+
         <div id="racing-stats" class="hidden">
             <div class="stat">Time: <span id="race-timer">0.0</span>s</div>
             <div class="stat">Laps: <span id="lap-count">0</span>/3</div>
         </div>
+
         <button id="reset-ball-btn">🔄 RESET POSITION</button>
     </div>
 
     <div id="hud-right" class="hud-panel hidden">
         <div class="hud-header">ANALYTICS OVERLAY</div>
+        
         <div class="graph-container">
             <canvas id="physicsChart"></canvas>
         </div>
+
         <div class="telemetry-grid">
             <div class="stat">V: <span id="v-total">0.00</span> m/s</div>
             <div class="stat">A: <span id="a-total">0.00</span> m/s²</div>
             <div class="stat">θX: <span id="rot-x">0</span>°</div>
             <div class="stat">θZ: <span id="rot-z">0</span>°</div>
         </div>
+        
         <p id="mode-description" style="font-size: 0.65rem; color: #94a3b8; margin-top: 10px;"></p>
     </div>
 
     <div id="match-hud" class="hud-panel hidden">
-        <span class="header" style="color: var(--accent-green);">VELOCITY MATCH</span>
-        <div class="stat">Target: <span id="target-val">2.50</span> m/s</div>
-        <div style="width: 100%; height: 6px; background: #0f172a; border-radius: 3px; overflow: hidden; margin-top: 5px;">
-            <div id="match-progress" style="width: 0%; height: 100%; background: var(--accent-green); transition: width 0.1s;"></div>
+        <span class="header" style="color: var(--accent-green); font-size: 0.7rem; letter-spacing: 1px;">VELOCITY MATCH CHALLENGE</span>
+        <div class="stat" style="justify-content: center; gap: 10px;">
+            Target: <span id="target-val">2.50</span> m/s
+        </div>
+        <div class="progress-bar-bg">
+            <div id="match-progress"></div>
         </div>
     </div>
 
