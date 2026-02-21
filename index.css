@@ -1,25 +1,31 @@
-:root { --accent: #22d3ee; --bg: #020617; --glass: rgba(15, 23, 42, 0.85); }
+:root { --accent: #22d3ee; --bg: #020617; --glass: rgba(15, 23, 42, 0.9); }
+
 body { margin: 0; background: var(--bg); font-family: 'Courier New', monospace; overflow: hidden; color: white; touch-action: none; }
+canvas { display: block; }
 
-.hud { position: absolute; background: var(--glass); backdrop-filter: blur(8px); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 50; }
+/* HUD Layouts */
+.hud { position: absolute; background: var(--glass); backdrop-filter: blur(10px); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); z-index: 50; }
 #hud-left { top: 20px; left: 20px; width: 180px; }
-#hud-right { top: 20px; right: 20px; width: 240px; }
+#hud-right { top: 20px; right: 20px; width: 260px; }
 
-.header { font-size: 0.7rem; color: var(--accent); font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; }
-.graph-container { background: #0f172a; border-radius: 6px; height: 120px; margin-bottom: 8px; }
-.telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-.stat { font-size: 0.75rem; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 4px; }
+.hud-header { font-size: 0.7rem; color: var(--accent); font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+.graph-container { background: #0f172a; border-radius: 8px; height: 130px; margin-bottom: 10px; padding: 5px; }
+.telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat { font-size: 0.75rem; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
 .stat span { color: var(--accent); font-weight: bold; }
 
-.input-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; margin-bottom: 5px; }
-.input-row input { background: #0f172a; border: 1px solid #334155; color: var(--accent); width: 45px; text-align: center; border-radius: 4px; }
+.input-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; margin-bottom: 8px; }
+.input-row input { background: #0f172a; border: 1px solid #334155; color: var(--accent); width: 50px; text-align: center; border-radius: 4px; outline: none; }
 
-#ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 40px; border-radius: 24px; text-align: center; z-index: 100; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
-#start-button { background: var(--accent); color: #0f172a; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
-#reset-ball-btn { width: 100%; margin-top: 5px; background: #334155; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 0.6rem; }
+/* Splash Screens */
+#ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 40px; border-radius: 24px; text-align: center; z-index: 100; border: 1px solid #334155; }
+#start-button { background: var(--accent); color: #0f172a; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+#start-button:hover { background: #67e8f9; transform: scale(1.02); }
+
+#reset-ball-btn { width: 100%; margin-top: 5px; background: #334155; color: #ef4444; border: 1px solid #ef4444; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.65rem; }
 
 #device-selector { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-.selector-box { background: #1e293b; padding: 30px; border-radius: 15px; text-align: center; }
-.selector-box button { display: block; width: 200px; padding: 12px; margin: 8px auto; border-radius: 6px; border: none; cursor: pointer; background: #334155; color: white; font-weight: bold; }
+.selector-box { background: #1e293b; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid #334155; }
+.selector-box button { display: block; width: 220px; padding: 12px; margin: 10px auto; border-radius: 8px; border: none; cursor: pointer; background: #334155; color: white; font-weight: bold; }
 
 .hidden { display: none !important; }
