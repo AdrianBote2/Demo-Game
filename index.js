@@ -1,4 +1,4 @@
-/* --- GLOBAL DATA & STATE: UPDATED --- */
+/* --- GLOBAL DATA & STATE --- */
 let scene, camera, renderer, ball, platformGroup, pillar, goalRing, finishLine, checkLine;
 let arrowG, arrowF, arrowN; 
 let px = 0, pz = 0, vx = 0, vz = 0; 
@@ -6,11 +6,10 @@ let tiltX = 0, tiltY = 0, calibBeta = null, calibGamma = null;
 
 let mass = 0.5, mu = 0.15, g = 9.81;
 
-// Physics Vector Clamping Constants
+// Physics Vector Clamping
 const MAX_VECTOR_LENGTH = 5.0; 
 const VECTOR_SCALE = 1.2;
 
-// Analytics & Mini-game Variables
 let chart;
 let targetSpeed = 2.50;
 let targetAccel = 1.50; 
@@ -37,7 +36,7 @@ const keys = {
     w: false, a: false, s: false, d: false 
 };
 
-/* --- INITIALIZATION & INPUT LISTENERS --- */
+/* --- INITIALIZATION & INPUT --- */
 document.getElementById('choose-mobile').onclick = () => { controlMethod = 'mobile'; hideSelector(); };
 document.getElementById('choose-pc').onclick = () => { controlMethod = 'pc'; hideSelector(); };
 
@@ -64,7 +63,7 @@ function updateKeyboardTilt() {
     tiltY = THREE.MathUtils.clamp(tiltY, -25, 25);
 }
 
-/* --- GRAPHING ENGINE --- */
+/* --- GRAPHING --- */
 function initGraph() {
     const ctx = document.getElementById('physicsChart').getContext('2d');
     chart = new Chart(ctx, {
@@ -106,11 +105,10 @@ function generateNewSandboxTarget() {
         chart.data.datasets[2].borderColor = '#ef4444'; 
         ghostLineData.fill(targetAccel);
     }
-    
     if(chart) chart.data.datasets[2].data = [...ghostLineData];
 }
 
-/* --- THREE.JS SCENE SETUP --- */
+/* --- THREE.JS SETUP --- */
 function initThree() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
@@ -141,12 +139,13 @@ function initThree() {
     goalRing.rotation.x = Math.PI/2; goalRing.position.y = 0.05;
     platformGroup.add(goalRing);
 
-    finishLine = new THREE.Mesh(new THREE.PlaneGeometry(8, 0.8), new THREE.MeshBasicMaterial({ color: 0x4ade80 }));
-    finishLine.rotation.x = -Math.PI/2; finishLine.position.set(0, 0.02, 6);
+    // INTEGRITY FIX: Gates now span the width and are correctly oriented
+    finishLine = new THREE.Mesh(new THREE.PlaneGeometry(22, 1.5), new THREE.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.5 }));
+    finishLine.rotation.x = -Math.PI/2; finishLine.position.set(0, 0.02, 9);
     platformGroup.add(finishLine);
 
-    checkLine = new THREE.Mesh(new THREE.PlaneGeometry(8, 0.8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-    checkLine.rotation.x = -Math.PI/2; checkLine.position.set(0, 0.02, -6);
+    checkLine = new THREE.Mesh(new THREE.PlaneGeometry(22, 1.5), new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.5 }));
+    checkLine.rotation.x = -Math.PI/2; checkLine.position.set(0, 0.02, -9);
     platformGroup.add(checkLine);
 
     ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 80 }));
@@ -166,11 +165,7 @@ function initThree() {
 
     initGraph();
     resetGame();
-
-    if (controlMethod === 'mobile') {
-        window.addEventListener('deviceorientation', handleOrientation);
-    }
-
+    if (controlMethod === 'mobile') window.addEventListener('deviceorientation', handleOrientation);
     gameActive = true;
     animate();
 }
@@ -191,18 +186,16 @@ function resetGame() {
     px = 0; pz = 0; vx = 0; vz = 0;
     laps = 0; hasCheckpoint = false; raceTime = 0;
     score = 0; timeLeft = 10.0; stayTimer = 0; matchTimerCount = 0;
-    
     ball.rotation.set(0, 0, 0);
     pillar.visible = (currentMode === 'racing');
     finishLine.visible = checkLine.visible = (currentMode === 'racing');
     goalRing.visible = (currentMode === 'challenge');
     checkLine.material.color.set(0xef4444);
-    
     if (currentMode === 'challenge') spawnGoal();
     if (currentMode === 'sandbox') generateNewSandboxTarget();
 }
 
-/* --- THE MASTER ANIMATION LOOP --- */
+/* --- ANIMATION LOOP --- */
 function animate() {
     if (!gameActive) return;
     requestAnimationFrame(animate);
@@ -230,13 +223,13 @@ function animate() {
     vz = (nFZ === 0) ? vz * 0.92 : vz + (nFZ / mass) * 0.016;
     px += vx; pz += vz;
 
+    // Boundary Logic
     if (currentMode === 'sandbox') {
         if (Math.abs(px) > 11) px = -Math.sign(px) * 11;
         if (Math.abs(pz) > 11) pz = -Math.sign(pz) * 11;
     } else {
         if (Math.abs(px) > 10.5) { px = Math.sign(px) * 10.5; vx *= -0.5; }
         if (Math.abs(pz) > 10.5) { pz = Math.sign(pz) * 10.5; vz *= -0.5; }
-        
         if (pillar.visible) {
             const dist = Math.sqrt(px*px + pz*pz);
             if (dist < 3.5) {
@@ -255,32 +248,27 @@ function animate() {
     const speed = Math.sqrt(vx*vx + vz*vz);
     const accel = Math.sqrt(nFX**2 + nFZ**2) / mass;
 
-    // HUD TELEMETRY: Planar Rotation Display
     document.getElementById('rot-x').innerText = (tiltY).toFixed(1); 
     document.getElementById('rot-z').innerText = (tiltX).toFixed(1); 
-    
     document.getElementById('v-total').innerText = speed.toFixed(2);
     document.getElementById('a-total').innerText = accel.toFixed(2);
 
+    /* --- MODE LOGIC --- */
     if (currentMode === 'sandbox') {
-        let diff = 0;
-        let tolerance = 0;
-        if(matchType === 'velocity') {
-            diff = Math.abs(speed - targetSpeed);
-            tolerance = velocityTolerance;
+        let diff = (matchType === 'velocity') ? Math.abs(speed - targetSpeed) : Math.abs(accel - targetAccel);
+        let tolerance = (matchType === 'velocity') ? velocityTolerance : accelTolerance;
+        
+        if (matchType === 'velocity') {
             document.getElementById('v-total').style.color = (diff < tolerance) ? "#4ade80" : "var(--accent-cyan)";
         } else {
-            diff = Math.abs(accel - targetAccel);
-            tolerance = accelTolerance;
             document.getElementById('a-total').style.color = (diff < tolerance) ? "#ef4444" : "var(--text-main)";
         }
+
         if (diff < tolerance) matchTimerCount += 0.016;
         else matchTimerCount = Math.max(0, matchTimerCount - 0.01);
-        
         document.getElementById('match-progress').style.width = (matchTimerCount / 3 * 100) + "%";
         if (matchTimerCount >= 3) { matchTimerCount = 0; generateNewSandboxTarget(); score++; }
     } 
-    
     else if (currentMode === 'challenge') {
         timeLeft -= 0.016;
         const distToGoal = Math.sqrt((px - goalX)**2 + (pz - goalZ)**2);
@@ -292,13 +280,18 @@ function animate() {
         document.getElementById('score').innerText = score;
         if (timeLeft <= 0) { gameActive = false; alert("TIME EXPIRED! Final Score: " + score); location.reload(); }
     } 
-    
     else if (currentMode === 'racing') {
         raceTime += 0.016;
         document.getElementById('race-timer').innerText = raceTime.toFixed(1);
-        if (pz < -5.5 && pz > -6.5 && !hasCheckpoint) { hasCheckpoint = true; checkLine.material.color.set(0x4ade80); }
-        if (pz > 5.5 && pz < 6.5 && hasCheckpoint) {
-            laps++; hasCheckpoint = false; checkLine.material.color.set(0xef4444);
+        
+        // REFINED LOGIC: Gates are now at Z = -9 and Z = 9
+        if (pz < -8.5 && pz > -9.5 && !hasCheckpoint) { 
+            hasCheckpoint = true; 
+            checkLine.material.color.set(0x4ade80); 
+        }
+        if (pz > 8.5 && pz < 9.5 && hasCheckpoint) {
+            laps++; hasCheckpoint = false; 
+            checkLine.material.color.set(0xef4444);
             document.getElementById('lap-count').innerText = laps;
             if (laps >= 3) { gameActive = false; alert(`RACE COMPLETE! Final Time: ${raceTime.toFixed(2)}s`); resetGame(); }
         }
@@ -311,19 +304,17 @@ function animate() {
     }
 
     const wPos = new THREE.Vector3(); ball.getWorldPosition(wPos);
-    updateArrow(arrowG, fgX, fgZ, wPos, 0.5); // Gravity
-    updateArrow(arrowF, -vx * 10, -vz * 10, wPos, 0.6); // Friction
-    updateArrow(arrowN, nFX, nFZ, wPos, 0.7); // Net Force
+    updateArrow(arrowG, fgX, fgZ, wPos, 0.5); 
+    updateArrow(arrowF, -vx * 10, -vz * 10, wPos, 0.6); 
+    updateArrow(arrowN, nFX, nFZ, wPos, 0.7); 
 
     renderer.render(scene, camera);
 }
 
-// UPDATED: Standard Clamping for Arrows
 function updateArrow(arrow, fx, fz, pos, height) {
     const dir = new THREE.Vector3(fx, 0, fz);
     let len = dir.length() * VECTOR_SCALE;
     len = Math.min(len, MAX_VECTOR_LENGTH);
-
     if (len > 0.05) {
         arrow.setDirection(dir.normalize());
         arrow.setLength(len, 0.3, 0.15);
@@ -333,7 +324,7 @@ function updateArrow(arrow, fx, fz, pos, height) {
     } else arrow.visible = false;
 }
 
-/* --- UI CONTROLS --- */
+/* --- UI ACTIONS --- */
 const modeButtons = ['sandbox', 'challenge', 'racing'];
 modeButtons.forEach(mode => {
     document.getElementById(`mode-${mode}`).onclick = () => {
